@@ -1,0 +1,36 @@
+{% extends "base.html" %} {% block title %}Checkout — {{ STORE_NAME }}{% endblock %} {% block content %}
+Checkout
+Cash on Delivery
+1Delivery Address
+Add new address
+{% if addresses %} {% for a in addresses %}
+
+{{ a.full_name }} {{ a.label }} {% if a.is_default %}Default{% endif %}
+{{ a.one_line }}
+📞 {{ a.phone }}
+{% endfor %} {% else %}
+Address illa! First add an address.
+{% endif %}
+2Payment Method
+
+💵 Cash on Delivery Recommended
+Delivery time-la cash-a pay pannunga. No advance payment.
+
+💳 UPI / Card / Netbanking
+Phase 9-la Razorpay integrate pannuvom 🔜
+3Review Items ({{ items|length }})
+{% for it in items %} {% set p = it.product %}
+{% if p.image_url %} {% else %}{{ p.emoji }}{% endif %}
+{{ p.name }}
+Qty {{ it.qty }} × {{ p.price | money }}
+{{ it.line_total | money }}
+{% endfor %}
+Order Summary
+Subtotal{{ subtotal | money }}
+Delivery {% if shipping == 0 %}FREE{% else %}{{ shipping | money }}{% endif %}
+You save{{ savings | money }}
+Total payable{{ total | money }}
+Place Order (COD)
+Order confirm panna, udane stock reserve aagum. Cancel panna 3 days varai time irukku.
+Safe Fast delivery Easy returns
+{% endblock %}

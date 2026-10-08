@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card, render_pagination with context %}
+{% block title %}
+  {% if q %}Search: {{ q }}{% elif active_cat %}{{ active_cat.name }}{% else %}All Products{% endif %} — {{ STORE_NAME }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row g-4">
+
+    <!-- ── FILTERS ────────────────────────────────────────── -->
+    <aside class="col-lg-3">
+      <div class="filter-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="filter-title">Filters</span>
+          {% if q or active_cat or min_p or max_p or min_r %}
+            <a href="{{ url_for('main.products') }}" class="text-tiny text-brand fw-semibold">Clear all</a>
+          {% endif %}
+        </div>
+
+        <form method="get" action="{{ url_for('main.products') }}" id="filterForm">
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+
+          <div class="mb-4">
+            <div class="filter-title mb-2">Category</div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="cat" value="all" id="catall"
+                     {{ 'checked' if not active_cat }} onchange="this.form.submit()">
+              <label class="form-check-label" for="catall">All categories</label>
+            </div>
+            {% for c in categories %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="cat" value="{{ c.slug }}" id="cat{{ c.id }}"
+                     {{ 'checked' if active_cat and active_cat.id == c.id }} onchange="this.form.submit()">
+              <label class="form-check-label" for="cat{{ c.id }}">{{ c.icon }} {{ c.name }}
+                <span class="text-muted text-tiny">({{ c.product_count }})</span></label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <div class="filter-title mb-2">Price ({{ CURRENCY if CURRENCY is defined else '₹' }})</div>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="number" class="form-control form-control-sm" name="min" placeholder="Min"
+                     value="{{ min_p if min_p is not none else '' }}" min="0">
+              <span class="text-muted">—</span>
+              <input type="number" class="form-control form-control-sm" name="max" placeholder="Max"
+                     value="{{ max_p if max_p is not none else '' }}" min="0">
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-2">
+              <a class="chip" href="{{ url_for('main.products', cat=active_cat.slug if active_cat else 'all', q=q, max=499) }}">Under ₹499</a>
+              <a class="chip" href="{{ url_for('main.products', cat=active_cat.slug if active_cat else 'all', q=q, min=500, max=1999) }}">₹500–1999</a>
+              <a class="chip" href="{{ url_for('main.products', cat=active_cat.slug if active_cat else 'all', q=q, min=2000) }}">₹2000+</a>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="filter-title mb-2">Customer Rating</div>
+            {% for val, label in [('', 'Any rating'), ('4', '4★ & above'), ('4.5', '4.5★ & above')] %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="rating" value="{{ val }}" id="rt{{ loop.index }}"
+                     {{ 'checked' if (min_r|string) == val or (not min_r and val == '') }}>
+              <label class="form-check-label" for="rt{{ loop.index }}">{{ label }}</label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <button class="btn btn-brand w-100 btn-sm" type="submit">Apply Filters</button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- ── RESULTS ────────────────────────────────────────── -->
+    <div class="col-lg-9">
+      <div class="card-soft p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="small text-muted">
+          {% if q %}Results for "<strong class="text-dark">{{ q }}</strong>" — {% endif %}
+          <strong class="text-dark">{{ pagination.total }}</strong> products
+          {% if active_cat %} in <strong class="text-dark">{{ active_cat.name }}</strong>{% endif %}
+        </div>
+        <form method="get" class="d-flex align-items-center gap-2 mb-0">
+          {% for k, v in request.args.items() if k != 'sort' and k != 'page' %}
+            <input type="hidden" name="{{ k }}" value="{{ v }}">
+          {% endfor %}
+          <label class="small text-muted mb-0">Sort by:</label>
+          <select class="form-select form-select-sm" name="sort" style="width:auto" onchange="this.form.submit()">
+            {% for val, label in [('pop','Popularity'),('plow','Price: Low to High'),('phigh','Price: High to Low'),
+                                  ('rate','Customer Rating'),('new','Newest First')] %}
+              <option value="{{ val }}" {{ 'selected' if sort == val }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      {% if products %}
+        <div class="row g-3">
+          {% for p in products %}
+            <div class="col-6 col-lg-4">{{ product_card(p) }}</div>
+          {% endfor %}
+        </div>
+
+        {{ render_pagination(pagination, {'q': q, 'cat': active_cat.slug if active_cat else '', 'min': min_p or '',
+                                   'max': max_p or '', 'rating': min_r or '', 'sort': sort}) }}
+      {% else %}
+        <div class="card-soft empty-state">
+          <div class="ico">🔍</div>
+          <h6 class="mt-2 fw-bold">No products found</h6>
+          <p class="mb-3 small">Filter-ah konjam maathi try pannunga, illa vera word search pannunga.</p>
+          <a href="{{ url_for('main.products') }}" class="btn btn-brand btn-sm rounded-pill px-4">Browse all products</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

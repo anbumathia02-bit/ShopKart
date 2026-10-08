@@ -1,0 +1,28 @@
+{# ===== v3: VS Code lint-clean (no Jinja inside style="") ============================================================ _macros.html — ShopKart reusable UI pieces (v2) ------------------------------------------------------------ Ella page-um ithai import pannum: {% from "_macros.html" import product_card with context %} Ithula 5 components irukku: stars() | product_card() | status_badge() order_tracker() | render_pagination() ============================================================ #} {% macro stars(rating, count=none) %} {% set r = rating | int %} {% set half = (rating - r) >= 0.4 %} {{ '★' * r }}{% if half %}★{% endif %}{{ '☆' * (5 - r - (1 if half else 0)) }} {{ '%.1f' | format(rating) }}{% if count %} ({{ '{:,}'.format(count) }}){% endif %} {% endmacro %} {% macro product_card(p) %}
+{% if p.image_url %} {{ p.name }} {% else %} {{ p.emoji }} {% endif %} {% if p.discount_percent >= 40 %} -{{ p.discount_percent }}% {% elif p.is_new %} NEW {% elif p.rating >= 4.4 %} TOP RATED {% endif %} {% if current_user.is_authenticated %}  {% else %} {% endif %} {% if not p.in_stock %}
+OUT OF STOCK
+{% endif %}
+{{ p.name }}
+by {{ p.seller }}
+{{ '%.1f' | format(p.rating) }} ({{ '{:,}'.format(p.review_count) }})
+{{ p.price | money }} {% if p.discount_percent %} {{ p.mrp | money }} {{ p.discount_percent }}% off {% endif %}
+{% if p.in_stock %} Free delivery {% if p.price < FREE_SHIPPING_ABOVE %}on orders above {{ FREE_SHIPPING_ABOVE | money }}{% endif %} {% else %} Currently unavailable {% endif %}
+{% if p.in_stock %}
+Add to Cart
+{% else %} Notify me {% endif %}
+{% endmacro %} {% macro status_badge(status) %} {% set m = status_meta.get(status, {'color':'secondary','text':status,'icon':'•'}) %} {{ m.icon }} {{ m.text }} {% endmacro %} {% macro order_tracker(order) %} {% set flow = ['PLACED','CONFIRMED','PACKED','SHIPPED','OUT_FOR_DELIVERY','DELIVERED'] %} {% if order.status == 'CANCELLED' %}
+Order Cancelled — idhu order cancel aagidhu.
+{% else %} {% set idx = flow.index(order.status) if order.status in flow else 0 %}
+{% for s in flow %} {% set cls = 'done' if loop.index0 < idx else ('current' if loop.index0 == idx else '') %}
+{{ status_meta[s].icon }}
+{{ status_meta[s].text }}
+{% endfor %}
+{% endif %} {% endmacro %} {% macro render_pagination(pagination, endpoint_args) %} {% if pagination.pages > 1 %}
+‹ Prev
+{% for p in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %} {% if p %}
+{{ p }}
+{% else %}
+…
+{% endif %} {% endfor %}
+Next ›
+{% endif %} {% endmacro %}

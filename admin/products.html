@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %} {% block title %}Products — Admin{% endblock %} {% block admin %}
+Products
+{{ products|length }} products
+Add Product
+Search 
+{{ q }}
+Category 
+All categories
+Filter Reset
+{% for p in products %} {% else %} {% endfor %}
+Product	Category	Price	Stock	Status	Actions
+{% if p.image_url %} {% else %}{{ p.emoji }}{% endif %}
+{{ p.name }}
+{{ p.seller }} · ⭐ {{ '%.1f'|format(p.rating) }}
+{{ p.category.icon if p.category else '—' }} {{ p.category.name if p.category else 'Uncategorised' }}	
+{{ p.price | money }}
+{{ p.mrp | money }}
+ 
+{% if p.stock == 0 %}Out of stock {% elif p.stock <= 5 %}Low{% endif %}	{% if p.is_active %}Active {% else %}Hidden{% endif %}	
+
+No products found. Add one →
+{% endblock %}

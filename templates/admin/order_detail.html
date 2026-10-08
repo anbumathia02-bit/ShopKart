@@ -1,0 +1,124 @@
+{% extends "admin/base.html" %}
+{% from "_macros.html" import status_badge, order_tracker with context %}
+{% block title %}Order {{ order.order_number }} — Admin{% endblock %}
+
+{% block admin %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <a href="{{ url_for('admin.orders') }}" class="small text-brand fw-semibold">← All orders</a>
+    <h5 class="fw-bold mb-0 mt-1">{{ order.order_number }}</h5>
+    <div class="text-tiny text-muted">Placed {{ order.placed_at | datetimef }} · {{ order.item_count }} items</div>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    {{ status_badge(order.status) }}
+    <span class="badge text-bg-light text-dark border">{{ order.payment_method }}</span>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- ── LEFT ─────────────────────────────────────────────── -->
+  <div class="col-xl-8">
+    <div class="card-soft p-3 mb-3">
+      <div class="fw-bold mb-3">Order Progress</div>
+      {{ order_tracker(order) }}
+    </div>
+
+    <div class="card-soft p-0 overflow-hidden mb-3">
+      <div class="p-3 pb-0"><div class="fw-bold">Items</div></div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr><th style="width:56px"></th><th>Product</th><th>Seller</th><th>Price</th><th>Qty</th><th class="text-end">Total</th></tr>
+          </thead>
+          <tbody>
+            {% for it in order.items %}
+            <tr>
+              <td>
+                <div class="img-thumb" style="width:44px;height:44px;flex:0 0 44px;font-size:1.2rem;background:{{ it.color }}">
+                  {% if it.product_image %}<img src="/static/uploads/products/{{ it.product_image }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">
+                  {% else %}{{ it.emoji }}{% endif %}
+                </div>
+              </td>
+              <td class="small fw-semibold">{{ it.product_name }}</td>
+              <td class="text-tiny text-muted">{{ it.seller }}</td>
+              <td class="small">{{ it.price | money }}</td>
+              <td class="small">{{ it.qty }}</td>
+              <td class="text-end fw-bold small">{{ it.line_total | money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr><td colspan="5" class="text-end small">Subtotal</td><td class="text-end small">{{ order.subtotal | money }}</td></tr>
+            <tr><td colspan="5" class="text-end small">Delivery</td>
+                <td class="text-end small">{% if order.shipping_fee == 0 %}<span class="text-ok fw-bold">FREE</span>{% else %}{{ order.shipping_fee | money }}{% endif %}</td></tr>
+            <tr><td colspan="5" class="text-end fw-bold">Total</td><td class="text-end fw-bold">{{ order.total | money }}</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-soft p-3">
+      <div class="fw-bold mb-3">Status Timeline</div>
+      <ul class="list-unstyled mb-0">
+        {% for h in order.history|reverse %}
+        <li class="d-flex gap-3 mb-3">
+          <span class="fs-5">{{ h.meta.icon }}</span>
+          <div>
+            <div class="small fw-semibold">{{ h.meta.text }}</div>
+            <div class="text-tiny text-muted">{{ h.created_at | datetimef }}{% if h.note %} · {{ h.note }}{% endif %}</div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── RIGHT ────────────────────────────────────────────── -->
+  <div class="col-xl-4">
+    <!-- update status -->
+    <div class="card-soft p-3 mb-3">
+      <div class="fw-bold mb-3">⚡ Update Status</div>
+      <form action="{{ url_for('admin.order_status', oid=order.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold mb-1">New status</label>
+          <select name="status" class="form-select form-select-sm" required>
+            {% for s in statuses %}
+              <option value="{{ s }}" {{ 'selected' if s == order.status }}>
+                {{ status_meta[s].icon }} {{ status_meta[s].text }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold mb-1">Note (optional)</label>
+          <input type="text" name="note" class="form-control form-control-sm" placeholder="e.g. Handed to Delhivery">
+        </div>
+        <button type="submit" class="btn btn-brand w-100 btn-sm"><i class="bi bi-check2-circle"></i> Update Order</button>
+      </form>
+      <div class="text-tiny text-muted mt-2">
+        <i class="bi bi-info-circle"></i> CANCELLED set panna, stock automatic-ah thirumbi add aagum.
+      </div>
+    </div>
+
+    <!-- customer -->
+    <div class="card-soft p-3 mb-3">
+      <div class="fw-bold mb-2">👤 Customer</div>
+      <div class="small fw-semibold">{{ order.user.name }}</div>
+      <div class="text-tiny text-muted">{{ order.user.email }}</div>
+      <div class="text-tiny text-muted">📞 {{ order.user.phone or order.ship_phone }}</div>
+      <a href="{{ url_for('admin.customer_detail', uid=order.user.id) }}" class="btn btn-sm btn-soft w-100 mt-2">
+        View customer profile
+      </a>
+    </div>
+
+    <!-- shipping -->
+    <div class="card-soft p-3">
+      <div class="fw-bold mb-2">🚚 Shipping Address</div>
+      <div class="small fw-semibold">{{ order.ship_name }}</div>
+      <div class="text-tiny text-muted">{{ order.ship_address }}</div>
+      <div class="text-tiny text-muted">📞 {{ order.ship_phone }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

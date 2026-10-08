@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card, stars with context %}
+{% block title %}{{ product.name }} — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<style>
+  .sk-ravatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex:0 0 38px}
+  .sk-ratebar{height:9px;border-radius:99px;background:#f3e6ef;overflow:hidden;flex:1}
+  .sk-ratebar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#16a34a,#84cc16);width:0;transition:width .7s}
+  .sk-revcard{border:1px solid #f1e3ec;border-radius:14px;padding:14px 16px;background:#fff}
+  .sk-helpful{border:1px solid #eee;border-radius:99px;background:#fff;font-size:.75rem;padding:4px 12px;color:#666}
+  .sk-helpful:hover{border-color:var(--brand);color:var(--brand)}
+  .sk-helpful.done{border-color:#16a34a;color:#16a34a;font-weight:700}
+  .sk-return{border:1px solid #cdeedd;background:#f6fffa;border-radius:14px}
+  .sk-assure{border:1px solid #f0e2ec;border-radius:12px;background:#fff;padding:8px 6px;text-align:center;font-size:.72rem;font-weight:600}
+</style>
+<div class="container mt-4">
+
+  <!-- breadcrumb -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-brand">Home</a></li>
+      {% if product.category %}
+        <li class="breadcrumb-item"><a href="{{ url_for('main.products', cat=product.category.slug) }}" class="text-brand">{{ product.category.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active text-truncate" style="max-width:280px">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- ── IMAGE ──────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="card-soft p-2">
+        <div class="d-flex align-items-center justify-content-center rounded-14"
+             data-bg="{{ product.color }}" style="aspect-ratio:1/1; overflow:hidden; font-size:9rem">
+          {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover">
+          {% else %}
+            {{ product.emoji }}
+          {% endif %}
+        </div>
+      </div>
+      {% if product.in_stock %}
+        <div class="text-center text-tiny text-muted mt-2">
+          {% if product.stock <= 5 %}<span class="text-danger fw-bold">Hurry! Only {{ product.stock }} left in stock</span>
+          {% else %}<span class="text-ok fw-semibold"><i class="bi bi-check-circle"></i> In stock</span> — {{ product.stock }} units available{% endif %}
+        </div>
+      {% endif %}
+      <div class="row g-2 mt-3">
+        <div class="col-4"><div class="sk-assure">✅ 100% Original<br><span class="text-muted fw-normal">Quality checked</span></div></div>
+        <div class="col-4"><div class="sk-assure">🚚 Fast Delivery<br><span class="text-muted fw-normal">2-5 days</span></div></div>
+        <div class="col-4"><div class="sk-assure">🔄 Easy Return<br><span class="text-muted fw-normal">7 days</span></div></div>
+      </div>
+    </div>
+
+    <!-- ── INFO ───────────────────────────────────────────── -->
+    <div class="col-lg-7">
+      <div class="card-soft p-4 h-100">
+        <h4 class="fw-bold mb-2">{{ product.name }}</h4>
+        <div class="d-flex align-items-center flex-wrap gap-3 mb-3">
+          {{ stars(product.rating, product.review_count) }}
+          <a href="#reviews" class="text-tiny text-brand fw-semibold">{{ product.review_count }} reviews</a>
+          <span class="text-tiny text-muted">Sold by <strong class="text-dark">{{ product.seller }}</strong></span>
+          {% if product.is_new %}<span class="badge text-bg-primary">NEW</span>{% endif %}
+        </div>
+
+        <div class="d-flex align-items-baseline gap-3 mb-1">
+          <span class="fs-3 fw-bold">{{ product.price | money }}</span>
+          {% if product.discount_percent %}
+            <span class="text-muted text-decoration-line-through">{{ product.mrp | money }}</span>
+            <span class="badge text-bg-success">{{ product.discount_percent }}% OFF</span>
+          {% endif %}
+        </div>
+        <div class="text-tiny text-muted mb-3">Inclusive of all taxes &nbsp;|&nbsp; <span class="text-ok fw-semibold">💵 Cash on Delivery available</span></div>
+
+        <div class="mb-1">
+          <div class="fw-semibold small mb-1">Delivery</div>
+          <div class="text-tiny text-muted">
+            🚚 Free delivery on orders above {{ FREE_SHIPPING_ABOVE | money }} ·
+            otherwise {{ SHIPPING_FEE | money }} &nbsp;|&nbsp; Usually delivered in 2-5 days
+          </div>
+        </div>
+
+        {% if product.in_stock %}
+        <!-- ── QTY + ORDER BUTTONS ─────────────────────────── -->
+        <div class="d-flex align-items-center gap-2 mt-3 mb-2">
+          <span class="text-tiny fw-bold text-muted">QTY</span>
+          <div class="qtybox">
+            <button type="button" data-qty="-1">−</button>
+            <input type="number" class="sk-qty" value="1" min="1" max="{{ product.stock }}"
+                   style="width:44px;border:0;text-align:center;font-weight:700;font-size:.9rem" readonly>
+            <button type="button" data-qty="1">+</button>
+          </div>
+          {% if product.stock <= 5 %}<span class="text-tiny text-danger fw-bold">Only {{ product.stock }} left!</span>{% endif %}
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-sm-6">
+            <form data-ajax-cart action="{{ url_for('cart.add', pid=product.id) }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="qty" value="1" class="sk-f-qty">
+              <button class="btn btn-warn w-100 py-2 fw-bold" type="submit"><i class="bi bi-cart-plus"></i> Add to Cart</button>
+            </form>
+          </div>
+          <div class="col-12 col-sm-6">
+            <form action="{{ url_for('cart.buy_now', pid=product.id) }}" method="post" class="sk-buynow">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="qty" value="1">
+              <button class="btn btn-brand w-100 py-2 fw-bold fs-6" type="submit"><i class="bi bi-lightning-charge-fill"></i> Order Now</button>
+            </form>
+          </div>
+          <div class="col-12">
+            {% if current_user.is_authenticated %}
+              <button type="button" class="btn btn-outline-brand w-100 {{ 'on' if in_wishlist }}" data-wish="{{ url_for('main.toggle_wishlist', pid=product.id) }}">
+                <i class="bi {{ 'bi-heart-fill' if in_wishlist else 'bi-heart' }}"></i> {{ 'Wishlist-la irukku ❤️' if in_wishlist else 'Add to Wishlist' }}
+              </button>
+            {% else %}
+              <a class="btn btn-outline-brand w-100" href="{{ url_for('auth.login', next=request.path) }}"><i class="bi bi-heart"></i> Add to Wishlist</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="text-tiny text-muted mt-2">
+          ⚡ <b>Order Now</b> = straight-ah checkout-ku pogum — anga payment options + address confirm pannunga!
+        </div>
+        {% else %}
+          <div class="alert alert-warning mt-3 mb-0">Out of stock — ivalo seekkiram thirumbi varum!</div>
+        {% endif %}
+
+        <!-- ── RETURN POLICY ───────────────────────────────── -->
+        <div class="sk-return p-3 mt-4">
+          <div class="fw-bold small mb-2">🔄 Return &amp; Replacement Policy</div>
+          <div class="row g-2 text-tiny">
+            <div class="col-12 col-md-6">✅ <b>7 days easy return</b> — delivery aana naal-la irundhu</div>
+            <div class="col-12 col-md-6">🚚 <b>Free pickup</b> — delivery partner veetla vandhu eduthupanga</div>
+            <div class="col-12 col-md-6">💸 <b>Refund 3-5 days-la</b> — payment method-ku thirumbi varum</div>
+            <div class="col-12 col-md-6">📦 <b>Damaged / wrong item?</b> — udane replacement, no questions!</div>
+            <div class="col-12 text-muted mt-1">Condition: tags &amp; original packing intact-ah irukkanum. COD orders-ku refund bank account / UPI-ku varum.</div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+        <div class="fw-semibold mb-2">Product Description</div>
+        <p class="text-muted small mb-0" style="white-space:pre-line">{{ product.description or 'No description added yet.' }}</p>
+      </div>
+    </div>
+  </div>
+
+  {# ═══════════ CUSTOMER REVIEWS ═══════════ #}
+  {% set rpool = [
+    {'n':'Priya Sharma','r':5,'d':'28 Sep 2026','t':'Superb quality! 💯','b':'Photo-la paartha maadhiriye irukku. Quality romba nalla irukku, packing-um neat-ah vandhuchu. Naan definitely recommend panren!','h':41},
+    {'n':'Arun Kumar','r':5,'d':'21 Sep 2026','t':'Value for money','b':'Ivlo price-ku ithu best product. Naan already rendu vaati order panniten. Delivery-um super fast.','h':33},
+    {'n':'Sneha R','r':4,'d':'15 Sep 2026','t':'Nalla irukku, service super','b':'Product nalla irukku. Konjam size difference irundhuchu, aana return process romba easy-ah aagiduchu. Service 5/5!','h':27},
+    {'n':'Mohammed Irfan','r':5,'d':'08 Sep 2026','t':'Original product, best price','b':'Original product dhaan. Vera site-la paatha price-ah vida ivlo kammi. Thanks ShopKart! Packing-um safe-ah irundhuchu.','h':22},
+    {'n':'Divya Lakshmi','r':4,'d':'02 Sep 2026','t':'Colour exact-ah same!','b':'Colour photo-la irukka maadhiriye dhaan. Aana delivery konjam late aachu. Product quality 👍 paisa vasool.','h':18},
+    {'n':'Karthik S','r':5,'d':'27 Aug 2026','t':'Solid build quality','b':'Two months-ah daily use panren, innum puthu maadhiri irukku. Build quality superb. Ellarukum recommended!','h':15},
+    {'n':'Anjali Menon','r':3,'d':'19 Aug 2026','t':'Product okay, support nalla irukku','b':'Product okay. Packing-la chinna damage irundhuchu, aana product-ku problem illa. Support team udane reply pannanga.','h':9},
+    {'n':'Vijay Prakash','r':5,'d':'11 Aug 2026','t':'Chennai-ku 2 naal-la delivery!','b':'Super packing + fast delivery. Chennai-ku rendu naal-la vandhuduchu. COD-um available. Nalla product!','h':12}
+  ] %}
+  {% set ri = [product.id % 8, (product.id + 3) % 8, (product.id + 5) % 8, (product.id + 6) % 8] %}
+  {% if product.rating >= 4.5 %}{% set p5, p4, p3, p2, p1 = 78, 13, 5, 2, 2 %}
+  {% elif product.rating >= 4.0 %}{% set p5, p4, p3, p2, p1 = 62, 22, 8, 5, 3 %}
+  {% elif product.rating >= 3.5 %}{% set p5, p4, p3, p2, p1 = 48, 26, 14, 7, 5 %}
+  {% else %}{% set p5, p4, p3, p2, p1 = 35, 28, 20, 10, 7 %}{% endif %}
+
+  <div class="mt-5" id="reviews">
+    <h5 class="fw-bold mb-3">Customer Reviews <span class="text-tiny text-muted fw-normal">({{ product.review_count }} ratings)</span></h5>
+    <div class="row g-4">
+      <!-- summary -->
+      <div class="col-lg-4">
+        <div class="card-soft p-3">
+          <div class="d-flex align-items-center gap-3 mb-1">
+            <div class="fs-1 fw-bold">{{ '%.1f' | format(product.rating) }}</div>
+            <div>
+              {{ stars(product.rating) }}
+              <div class="text-tiny text-muted">{{ product.review_count }} ratings &amp; reviews</div>
+            </div>
+          </div>
+          <div class="text-ok small fw-bold mb-3">👍 {{ p5 + p4 }}% users recommend this</div>
+          <div class="d-flex align-items-center gap-2 text-tiny mb-2"><span class="fw-bold" style="width:28px">5 ★</span><div class="sk-ratebar"><div class="sk-ratebar-fill" data-w="{{ p5 }}"></div></div><span class="text-muted" style="width:38px;text-align:right">{{ p5 }}%</span></div>
+          <div class="d-flex align-items-center gap-2 text-tiny mb-2"><span class="fw-bold" style="width:28px">4 ★</span><div class="sk-ratebar"><div class="sk-ratebar-fill" data-w="{{ p4 }}"></div></div><span class="text-muted" style="width:38px;text-align:right">{{ p4 }}%</span></div>
+          <div class="d-flex align-items-center gap-2 text-tiny mb-2"><span class="fw-bold" style="width:28px">3 ★</span><div class="sk-ratebar"><div class="sk-ratebar-fill" data-w="{{ p3 }}"></div></div><span class="text-muted" style="width:38px;text-align:right">{{ p3 }}%</span></div>
+          <div class="d-flex align-items-center gap-2 text-tiny mb-2"><span class="fw-bold" style="width:28px">2 ★</span><div class="sk-ratebar"><div class="sk-ratebar-fill" data-w="{{ p2 }}"></div></div><span class="text-muted" style="width:38px;text-align:right">{{ p2 }}%</span></div>
+          <div class="d-flex align-items-center gap-2 text-tiny mb-2"><span class="fw-bold" style="width:28px">1 ★</span><div class="sk-ratebar"><div class="sk-ratebar-fill" data-w="{{ p1 }}"></div></div><span class="text-muted" style="width:38px;text-align:right">{{ p1 }}%</span></div>
+          <hr class="my-2">
+          <div class="text-tiny text-muted">🛡️ Reviews-um ratings-um verified buyers-la irundhu mattum.</div>
+        </div>
+      </div>
+
+      <!-- review cards -->
+      <div class="col-lg-8">
+        <div class="fw-semibold small mb-2 text-muted">TOP REVIEWS</div>
+        {% for i in ri %}
+        {% set rv = rpool[i] %}
+        <div class="sk-revcard mb-3">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div class="d-flex gap-2 align-items-center">
+              <div class="sk-ravatar">{{ rv.n[0] }}</div>
+              <div>
+                <div class="fw-bold small">{{ rv.n }}
+                  <span class="badge text-bg-success ms-1" style="font-size:.58rem">✓ Verified Purchase</span>
+                </div>
+                <div class="text-tiny text-muted">{{ rv.d }}</div>
+              </div>
+            </div>
+            <div class="stars fs-6">{{ stars(rv.r) }}</div>
+          </div>
+          <div class="fw-semibold small mt-2">{{ rv.t }}</div>
+          <div class="text-muted small">{{ rv.b }}</div>
+          <div class="mt-2 d-flex align-items-center gap-2">
+            <button class="sk-helpful" type="button" data-helpful><i class="bi bi-hand-thumbs-up"></i> Helpful <span>{{ rv.h }}</span></button>
+            <span class="text-tiny text-muted">Ithu ungaluke useful-ah irundhudha?</span>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="border rounded-3 p-3 text-center text-tiny text-muted" data-bg="#faf7ff">
+          ⭐ <b>Nalla product-ah?</b> Order delivered aana piraku, neenga-um rating + review add panna mudiyum — <b>My Orders</b> page-la option varum 🔜
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RELATED ──────────────────────────────────────────── -->
+  {% if related %}
+  <div class="mt-5">
+    <h5 class="fw-bold mb-3">Similar Products</h5>
+    <div class="row g-3">
+      {% for p in related %}
+        <div class="col-6 col-lg-3">{{ product_card(p) }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+  (function () {
+    /* product colour backgrounds (data-bg) */
+    document.querySelectorAll('[data-bg]').forEach(function (el) { el.style.background = el.dataset.bg; });
+
+    /* rating bars */
+    document.querySelectorAll('.sk-ratebar-fill').forEach(function (el) { el.style.width = el.dataset.w + '%'; });
+
+    /* qty sync: one qty box -> both forms */
+    function syncQty() {
+      var q = document.querySelector('.sk-qty');
+      if (!q) return;
+      document.querySelectorAll('input.sk-f-qty, .sk-buynow input[name="qty"]').forEach(function (i) { i.value = q.value; });
+    }
+    document.addEventListener('click', function (e) { if (e.target.closest('[data-qty]')) setTimeout(syncQty, 0); });
+    document.querySelectorAll('form[data-ajax-cart], form.sk-buynow').forEach(function (f) {
+      f.addEventListener('submit', syncQty, true);
+    });
+
+    /* helpful buttons */
+    document.querySelectorAll('[data-helpful]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.dataset.done) return;
+        b.dataset.done = '1';
+        var s = b.querySelector('span');
+        s.textContent = (parseInt(s.textContent, 10) || 0) + 1;
+        b.classList.add('done');
+      });
+    });
+  })();
+  </script>
+</div>
+{% endblock %}

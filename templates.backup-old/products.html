@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% from "_macros.html" import product_card, render_pagination with context %} {% block title %} {% if q %}Search: {{ q }}{% elif active_cat %}{{ active_cat.name }}{% else %}All Products{% endif %} — {{ STORE_NAME }} {% endblock %} {% block content %}
+Filters {% if q or active_cat or min_p or max_p or min_r %} Clear all {% endif %}
+{% if q %}{% endif %}
+Category
+ All categories
+{% for c in categories %}
+ {{ c.icon }} {{ c.name }} ({{ c.product_count }})
+{% endfor %}
+Price ({{ CURRENCY if CURRENCY is defined else '₹' }})
+Min
+ — 
+Max
+Under ₹499 ₹500–1999 ₹2000+
+Customer Rating
+{% for val, label in [('', 'Any rating'), ('4', '4★ & above'), ('4.5', '4.5★ & above')] %}
+ {{ label }}
+{% endfor %}
+Apply Filters
+{% if q %}Results for "{{ q }}" — {% endif %} {{ pagination.total }} products {% if active_cat %} in {{ active_cat.name }}{% endif %}
+{% for k, v in request.args.items() if k != 'sort' and k != 'page' %} {% endfor %} Sort by: 
+{{ label }}
+{% if products %}
+{% for p in products %}
+{{ product_card(p) }}
+{% endfor %}
+{{ render_pagination(pagination, {'q': q, 'cat': active_cat.slug if active_cat else '', 'min': min_p or '', 'max': max_p or '', 'rating': min_r or '', 'sort': sort}) }} {% else %}
+🔍
+No products found
+Filter-ah konjam maathi try pannunga, illa vera word search pannunga.
+
+Browse all products
+{% endif %}
+{% endblock %}

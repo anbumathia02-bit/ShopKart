@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %} {% from "_macros.html" import status_badge with context %} {% block title %}{{ user.name }} — Customer{% endblock %} {% block admin %} ← All customers
+{{ user.name[0]|upper }}
+{{ user.name }}
+{{ user.email }} · 📞 {{ user.phone or '—' }} · Joined {{ user.created_at | datef }}
+Total Orders
+{{ orders|length }}
+Total Spent
+{{ spent | money }}
+Addresses
+{{ addresses|length }}
+Avg Order
+{{ (spent / orders|length) | round | int | money if orders else '₹0' }}
+Order History
+{% for o in orders %}
+{{ o.order_number }}
+{{ o.placed_at | datetimef }} · {{ o.item_count }} items
+{{ o.total | money }}
+{{ status_badge(o.status) }}
+{% else %}
+Indha customer innum order pannala.
+{% endfor %}
+Saved Addresses
+{% for a in addresses %}
+{{ a.full_name }} {{ a.label }} {% if a.is_default %}Default{% endif %}
+{{ a.one_line }}
+📞 {{ a.phone }}
+{% else %}
+No addresses saved.
+{% endfor %}
+{% endblock %}

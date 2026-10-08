@@ -1,0 +1,19 @@
+{% extends "base.html" %} {% block title %}Sign Up — {{ STORE_NAME }}{% endblock %} {% block content %}
+🎉
+Create your account
+Free account · Order tracking · Wishlist
+
+Full name * 
+{{ form.get('name', '') }}
+Email * 
+{{ form.get('email', '') }}
+Phone 
+{{ form.get('phone', '') }}
+Password * 
+Min 6 characters
+Confirm password * 
+Repeat password
+Create Account
+Already member? Login
+Sign up to agree your Terms & Privacy Policy.
+{% endblock %}

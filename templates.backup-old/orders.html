@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% from "_macros.html" import status_badge with context %} {% block title %}My Orders — {{ STORE_NAME }}{% endblock %} {% block content %}
+📦 My Orders
+{% if orders %} {% for o in orders %}
+Order {{ o.order_number }} Placed on {{ o.placed_at | datef }}
+💵 {{ 'Cash on Delivery' if o.payment_method == 'COD' else o.payment_method }}
+{{ status_badge(o.status) }}
+{{ o.total | money }}
+{% for it in o.items[:3] %}
+{% if it.product_image %} {% else %}{{ it.emoji }}{% endif %}
+{{ it.product_name }}
+Qty {{ it.qty }}
+{% endfor %} {% if o.items|length > 3 %} +{{ o.items|length - 3 }} more {% endif %}
+View Details {% if o.status in ('SHIPPED','OUT_FOR_DELIVERY') %} Track {% endif %} {% if o.can_cancel %}
+Cancel
+{% endif %}
+{% endfor %} {% else %}
+📦
+No orders yet
+First order place pannunga, inga varum 😊
+
+Start Shopping
+{% endif %}
+{% endblock %}

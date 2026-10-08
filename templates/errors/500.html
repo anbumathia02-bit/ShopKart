@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Server Error — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card-soft empty-state mt-4" style="max-width:640px;margin:0 auto">
+    <div class="ico">🛠️</div>
+    <h3 class="fw-bold mt-2 mb-1">500</h3>
+    <h6 class="fw-semibold mb-2">Server-la edho prachanai</h6>
+    <p class="small mb-4">Konjam neram kazhichu try pannunga. Trouble continue aana, admin-ku solunga.</p>
+    <div class="d-flex gap-2 justify-content-center">
+      <a href="{{ url_for('main.home') }}" class="btn btn-brand rounded-pill px-4">Go Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, order_tracker with context %}
+{% block title %}Track Order — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width:800px">
+  <h5 class="fw-bold mb-3">🚚 Track Your Order</h5>
+
+  <div class="card-soft p-4 mb-4">
+    <p class="text-muted small">Order number-ah type pannunga (e.g. <code>SK-2026-000001</code>). Idhu unga order confirmation message-la irukkum.</p>
+    <form method="get" class="row g-2">
+      <div class="col-sm-9">
+        <input type="text" name="order" class="form-control" placeholder="SK-2026-000001"
+               value="{{ number }}" required>
+      </div>
+      <div class="col-sm-3 d-grid">
+        <button type="submit" class="btn btn-brand"><i class="bi bi-search"></i> Track</button>
+      </div>
+    </form>
+  </div>
+
+  {% if order %}
+    <div class="card-soft p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <div class="fw-bold">{{ order.order_number }}</div>
+          <div class="text-tiny text-muted">Placed {{ order.placed_at | datetimef }} · {{ order.item_count }} items · {{ order.total | money }}</div>
+        </div>
+        {{ status_badge(order.status) }}
+      </div>
+
+      {{ order_tracker(order) }}
+
+      <hr>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="fw-semibold small mb-1">Delivering to</div>
+          <div class="text-tiny text-muted">{{ order.ship_name }}<br>{{ order.ship_address }}<br>📞 {{ order.ship_phone }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="fw-semibold small mb-1">Items</div>
+          {% for it in order.items %}
+            <div class="text-tiny text-muted">{{ it.emoji }} {{ it.product_name }} × {{ it.qty }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if order.history %}
+        <hr>
+        <div class="fw-semibold small mb-2">Updates</div>
+        <ul class="list-unstyled mb-0">
+          {% for h in order.history|reverse %}
+          <li class="text-tiny text-muted mb-1">{{ h.meta.icon }} <strong class="text-dark">{{ h.meta.text }}</strong>
+            — {{ h.created_at | datetimef }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% elif number %}
+    <div class="card-soft empty-state">
+      <div class="ico">🔍</div>
+      <h6 class="fw-bold mt-2">Order kidaikkala</h6>
+      <p class="small mb-0">Order number-ah sariya check pannunga.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

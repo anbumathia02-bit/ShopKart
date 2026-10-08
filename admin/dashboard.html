@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %} {% from "_macros.html" import status_badge with context %} {% block title %}Dashboard — Admin{% endblock %} {% block admin %}
+Sales Dashboard
+{{ now | datef }} · Welcome back, {{ current_user.name }} 👋
+Add Product View Orders
+{% set kpis = [ ('Total Revenue', total_revenue | money, 'bi-currency-rupee', 'All time (excluding cancelled)'), ('Total Orders', total_orders, 'bi-receipt', pending ~ ' pending action'), ('Customers', total_customers, 'bi-people', 'Registered buyers'), ('Products', total_products, 'bi-box-seam', out_of_stock ~ ' out of stock') ] %} {% for label, value, icon, sub in kpis %}
+{{ label }}
+{{ value }}
+{{ sub }}
+{% endfor %}
+📈 Revenue — Last 7 Days
+Today: {{ today_revenue | money }}
+{% for i in range(7) %}
+{% if day_values[i] %}{{ (day_values[i] / 1000) | round(1) }}k{% endif %}
+{{ day_labels[i] }}
+{% endfor %}
+📦 Orders by Status
+{% for s in statuses %} {% set c = status_counts.get(s, 0) %} {% if c %}
+{{ status_meta[s].icon }} {{ status_meta[s].text }} {{ c }}
+{% endif %} {% endfor %} {% if not status_counts %}
+No orders yet.
+{% endif %}
+🧾 Recent Orders
+All orders →
+{% for o in recent_orders %} {% else %} {% endfor %}
+Order	Customer	Total	Status
+{{ o.order_number }}
+{{ o.placed_at | datef }}
+{{ o.user.name }}	{{ o.total | money }}	{{ status_badge(o.status) }}
+No orders yet.
+🏆 Top Selling Products
+{% for name, emoji, color, sold, revenue in top_products %}
+{{ emoji }}
+{{ name }}
+{{ sold }} sold · {{ revenue | money }}
+{% else %}
+No sales data yet.
+{% endfor %}
+⚠️ Low Stock Alert
+Manage →
+{% for p in low_stock %}
+{{ p.emoji }} {{ p.name }}
+{{ p.stock }} left
+{% else %}
+Ellam stock-la irukku 👍
+{% endfor %}
+{% endblock %}
+

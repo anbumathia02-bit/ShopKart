@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card with context %}
+
+{# ============================================================
+   index.html — ShopKart HOME PAGE
+   ------------------------------------------------------------
+   • Backend (blueprints/main.py → home()) anuppura variables:
+       categories | deal_products | top_rated | new_arrivals
+   • Ella product cards-um _macros.html → product_card() use pannum
+   • Design: static/css/sk.css (hero-main, hero-sub, card-soft, pcard...)
+   • Bootstrap 5 grid (row / col) — mobile-ku fully responsive
+   ============================================================ #}
+
+{% block title %}{{ STORE_NAME }} — Online Shopping for Fashion, Electronics & More{% endblock %}
+
+{# ── Reusable section header (title + "See all" link) ── #}
+{% macro section_head(icon, title, href, cta='See all →') %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0 sec-title">{{ icon }} {{ title }}</h5>
+    <a href="{{ href }}" class="small sec-more fw-semibold">{{ cta }}</a>
+  </div>
+{% endmacro %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       1) HERO CAROUSEL — 3 slides (auto-play)
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-interval="4500">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <div class="hero-slide hs-deal">
+          <span class="hero-chip mb-2">MEGA SALE IS LIVE</span>
+          <h1 class="fw-bold mb-2 hero-title">Up to 70% OFF<br>on every category</h1>
+          <p class="mb-3 opacity-75">Fashion · Electronics · Home · Kitchen · Beauty · Sports</p>
+          <div>
+            <a href="{{ url_for('main.products') }}" class="btn btn-light fw-bold px-4 rounded-pill">Shop Now →</a>
+          </div>
+          <span class="hero-emoji">🛍️</span>
+        </div>
+      </div>
+
+      <div class="carousel-item">
+        <div class="hero-slide hs-tech">
+          <span class="hero-chip mb-2">ELECTRONICS FEST</span>
+          <h1 class="fw-bold mb-2 hero-title">Gadgets from ₹899<br>5G phones · earbuds · watches</h1>
+          <p class="mb-3 opacity-75">Top sellers · warranty assured · fast delivery</p>
+          <div>
+            <a href="{{ url_for('main.products', cat='electronics') }}" class="btn btn-light fw-bold px-4 rounded-pill">Explore Electronics →</a>
+          </div>
+          <span class="hero-emoji">🎧</span>
+        </div>
+      </div>
+
+      <div class="carousel-item">
+        <div class="hero-slide hs-fashion">
+          <span class="hero-chip mb-2">FASHION DAYS</span>
+          <h1 class="fw-bold mb-2 hero-title">Min 50% off<br>ethnic · casual · footwear</h1>
+          <p class="mb-3 opacity-75">Kurtas · shirts · shoes · accessories</p>
+          <div>
+            <a href="{{ url_for('main.products', cat='fashion') }}" class="btn btn-light fw-bold px-4 rounded-pill">Grab Fashion Deals →</a>
+          </div>
+          <span class="hero-emoji">👗</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2) SHOP BY CATEGORY — 6 tiles (auto from DB)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="mt-5">
+    {{ section_head('🏬', 'Shop by Category', url_for('main.products'), 'View all →') }}
+    <div class="row g-3">
+      {% for c in categories %}
+      <div class="col-4 col-md-2">
+        <a href="{{ url_for('main.products', cat=c.slug) }}" class="cat-pill h-100">
+          <span class="cp-ic">{{ c.icon }}</span>
+          <span class="cp-name">{{ c.name }}</span>
+          <span class="cp-count">{{ c.product_count }} items</span>
+        </a>
+      </div>
+      {% else %}
+      <div class="col-12">
+        <div class="empty-state">No categories yet — admin panel-la category add pannunga.</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2.5) ⚡ DEAL BAND — flash-sale countdown (JS timer)
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="deal-band mt-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span class="db-bolt">⚡</span>
+        <div>
+          <div class="db-title">Deal of the Day</div>
+          <div class="db-sub">Top offers · COD available · ends tonight</div>
+        </div>
+      </div>
+      <div class="db-timer" data-countdown>
+        <div class="db-cell"><b id="cdH">00</b><span>HRS</span></div>
+        <div class="db-colon">:</div>
+        <div class="db-cell"><b id="cdM">00</b><span>MIN</span></div>
+        <div class="db-colon">:</div>
+        <div class="db-cell"><b id="cdS">00</b><span>SEC</span></div>
+      </div>
+      <a href="#best-deals" class="btn btn-warn fw-bold px-4">Grab Deal →</a>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       3) 🔥 BEST DEALS — biggest discount first
+       ═══════════════════════════════════════════════════════════ -->
+  {% if deal_products %}
+  <div class="mt-5" id="best-deals">
+    {{ section_head('🔥', 'Best Deals', url_for('main.products', sort='disc')) }}
+    <div class="row g-3">
+      {% for p in deal_products[:4] %}
+      <div class="col-6 col-lg-3">{{ product_card(p) }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       4) PROMO BANNERS — Kitchen + Beauty
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="row g-3 mt-4">
+    <div class="col-md-6">
+      <div class="hero-sub h-100 d-flex flex-column justify-content-center"
+           style="background:linear-gradient(140deg,#7f00ff,#e100ff); min-height:120px">
+        <h5 class="fw-bold mb-1">Kitchen Essentials</h5>
+        <p class="small mb-2 opacity-75">Up to 40% off — cookware, storage & more</p>
+        <a href="{{ url_for('main.products', cat='kitchen') }}"
+           class="btn btn-sm btn-light fw-semibold rounded-pill" style="width:fit-content">Shop Kitchen</a>
+        <span class="hero-emoji">🍳</span>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="hero-sub h-100 d-flex flex-column justify-content-center"
+           style="background:linear-gradient(140deg,#ee0979,#ff6a00); min-height:120px">
+        <h5 class="fw-bold mb-1">Beauty Picks</h5>
+        <p class="small mb-2 opacity-75">Min 30% off — skincare, makeup & more</p>
+        <a href="{{ url_for('main.products', cat='beauty') }}"
+           class="btn btn-sm btn-light fw-semibold rounded-pill" style="width:fit-content">Shop Beauty</a>
+        <span class="hero-emoji">💄</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       5) ⭐ TOP RATED — highest customer rating first
+       ═══════════════════════════════════════════════════════════ -->
+  {% if top_rated %}
+  <div class="mt-5">
+    {{ section_head('⭐', 'Top Rated Products', url_for('main.products', sort='rate')) }}
+    <div class="row g-3">
+      {% for p in top_rated[:4] %}
+      <div class="col-6 col-lg-3">{{ product_card(p) }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       6) 🆕 NEW ARRIVALS — latest added products
+       ═══════════════════════════════════════════════════════════ -->
+  {% if new_arrivals %}
+  <div class="mt-5">
+    {{ section_head('🆕', 'New Arrivals', url_for('main.products', sort='new')) }}
+    <div class="row g-3">
+      {% for p in new_arrivals[:4] %}
+      <div class="col-6 col-lg-3">{{ product_card(p) }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       7) TRUST STRIP — delivery / COD / returns / secure
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="row g-3 mt-5">
+    {% set perks = [
+      ('🚚', 'Free Delivery', 'On orders above ₹499'),
+      ('💵', 'Cash on Delivery', 'Pay when it arrives'),
+      ('↩️', '7-Day Returns', 'No questions asked'),
+      ('🔒', 'Secure Checkout', 'Your data is safe')
+    ] %}
+    {% for ico, title, sub in perks %}
+    <div class="col-6 col-lg-3">
+      <div class="card-soft p-3 d-flex align-items-center gap-3 h-100">
+        <div class="fs-3">{{ ico }}</div>
+        <div>
+          <div class="fw-bold" style="font-size:.9rem">{{ title }}</div>
+          <div class="text-tiny text-muted">{{ sub }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

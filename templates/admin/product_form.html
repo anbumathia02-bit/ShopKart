@@ -1,0 +1,153 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if product else 'Add' }} Product — Admin{% endblock %}
+
+{% block admin %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h5 class="fw-bold mb-0">{{ '✏️ Edit Product' if product else '➕ Add New Product' }}</h5>
+    <div class="text-tiny text-muted">{{ 'Update details, price, stock or image' if product else 'Fill the details and publish to store' }}</div>
+  </div>
+  <a href="{{ url_for('admin.products') }}" class="btn btn-soft btn-sm">← Back to products</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+
+    <!-- ── LEFT ───────────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <div class="card-soft p-3 mb-3">
+        <div class="fw-bold mb-3">Basic Details</div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Product name *</label>
+          <input type="text" name="name" class="form-control" required
+                 value="{{ product.name if product else '' }}" placeholder="e.g. Men's Cotton Casual Shirt">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Description</label>
+          <textarea name="description" class="form-control" rows="5"
+                    placeholder="Materials, size, warranty, delivery info...">{{ product.description if product else '' }}</textarea>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Selling price (₹) *</label>
+            <input type="number" name="price" class="form-control" required min="1"
+                   value="{{ product.price if product else '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">MRP (₹)</label>
+            <input type="number" name="mrp" class="form-control" min="1"
+                   value="{{ product.mrp if product else '' }}" placeholder="Same as price if none">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Stock quantity *</label>
+            <input type="number" name="stock" class="form-control" required min="0"
+                   value="{{ product.stock if product else 0 }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft p-3">
+        <div class="fw-bold mb-3">Categorisation &amp; Seller</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Category</label>
+            <select name="category_id" class="form-select">
+              <option value="">— Select category —</option>
+              {% for c in categories %}
+                <option value="{{ c.id }}" {{ 'selected' if product and product.category_id == c.id }}>
+                  {{ c.icon }} {{ c.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Seller name</label>
+            <input type="text" name="seller" class="form-control"
+                   value="{{ product.seller if product else 'ShopKart Retail' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Rating (0–5)</label>
+            <input type="number" name="rating" class="form-control" step="0.1" min="0" max="5"
+                   value="{{ product.rating if product else 4.0 }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Fallback emoji</label>
+            <input type="text" name="emoji" class="form-control" maxlength="4"
+                   value="{{ product.emoji if product else '📦' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Fallback colour</label>
+            <input type="color" name="color" class="form-control form-control-color w-100"
+                   value="{{ product.color if product else '#eef1f5' }}">
+          </div>
+        </div>
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                 {{ 'checked' if (not product) or product.is_active }}>
+          <label class="form-check-label small" for="isActive">Visible in store (active)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: IMAGE ───────────────────────────────────── -->
+    <div class="col-lg-4">
+      <div class="card-soft p-3 mb-3">
+        <div class="fw-bold mb-3">Product Image</div>
+
+        <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
+             style="aspect-ratio:1/1;background:{{ product.color if product else '#eef1f5' }};overflow:hidden;font-size:5rem"
+             id="previewBox">
+          {% if product and product.image_url %}
+            <img id="previewImg" src="{{ product.image_url }}" style="width:100%;height:100%;object-fit:cover">
+          {% else %}
+            <span id="previewEmoji">{{ product.emoji if product else '📦' }}</span>
+          {% endif %}
+        </div>
+
+        <input type="file" name="image" id="imageInput" class="form-control form-control-sm" accept="image/*">
+        <div class="text-tiny text-muted mt-2">
+          JPG / PNG / WEBP · max 5 MB. Image illama na, emoji + colour use aagum.
+        </div>
+
+        {% if product and product.image %}
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="remove_image" id="rmImg">
+          <label class="form-check-label text-tiny text-danger" for="rmImg">Remove current image</label>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="card-soft p-3">
+        <div class="fw-bold mb-2">Quick Stats</div>
+        {% if product %}
+          <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Product ID</span><span>#{{ product.id }}</span></div>
+          <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Slug</span><span class="text-truncate" style="max-width:150px">{{ product.slug }}</span></div>
+          <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Added</span><span>{{ product.created_at | datef }}</span></div>
+          <div class="small d-flex justify-content-between"><span class="text-muted">Discount</span><span>{{ product.discount_percent }}%</span></div>
+        {% else %}
+          <div class="text-tiny text-muted">New product — save panna piragu stats inga varum.</div>
+        {% endif %}
+      </div>
+
+      <div class="d-grid gap-2 mt-3">
+        <button class="btn btn-brand py-2" type="submit">
+          <i class="bi bi-check2-circle"></i> {{ 'Update Product' if product else 'Create Product' }}
+        </button>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-soft">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  // live image preview
+  document.getElementById('imageInput').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const box = document.getElementById('previewBox');
+    box.innerHTML = '<img style="width:100%;height:100%;object-fit:cover" src="' + url + '">';
+  });
+</script>
+{% endblock %}

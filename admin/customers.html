@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %} {% block title %}Customers — Admin{% endblock %} {% block admin %}
+Customers
+{{ users|length }} registered buyer(s)
+{{ q }}
+ 
+{% for u in users %} {% set st = stats.get(u.id, {'orders':0, 'spent':0}) %} {% else %} {% endfor %}
+Customer	Phone	Orders	Total Spent	Joined	Action
+{{ u.name[0]|upper }}
+{{ u.name }}
+{{ u.email }}
+{{ u.phone or '—' }}	{{ st.orders }}	{{ st.spent | money }}	{{ u.created_at | datef }}	Details
+No customers found.
+{% endblock %}

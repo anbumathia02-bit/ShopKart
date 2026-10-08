@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% from "_macros.html" import status_badge with context %} {% block title %}My Account — {{ STORE_NAME }}{% endblock %} {% block content %}
+{{ current_user.name[0]|upper }}
+{{ current_user.name }}
+{{ current_user.email }}
+{% if current_user.is_admin %}ADMIN{% endif %}
+Profile My Orders Addresses Wishlist {% if current_user.is_admin %} Admin Panel {% endif %} Logout
+Total Orders
+{{ total_orders }}
+Saved Addresses
+{{ current_user.addresses|length }}
+Member Since
+{{ current_user.created_at | datef }}
+Profile Details
+Name{{ current_user.name }}
+Email{{ current_user.email }}
+Phone{{ current_user.phone or '—' }}
+Recent Orders
+View all →
+{% if orders %} {% for o in orders %}
+{{ o.order_number }}
+{{ o.placed_at | datef }} · {{ o.item_count }} items · {{ o.total | money }}
+{{ status_badge(o.status) }}
+{% endfor %} {% else %}
+No orders yet. Shop now →
+{% endif %}
+{% endblock %}

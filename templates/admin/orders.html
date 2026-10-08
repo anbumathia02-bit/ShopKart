@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% from "_macros.html" import status_badge with context %}
+{% block title %}Orders — Admin{% endblock %}
+
+{% block admin %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h5 class="fw-bold mb-0">Orders</h5>
+    <div class="text-tiny text-muted">{{ orders|length }} order(s){% if current_status %} · filtered: {{ current_status }}{% endif %}</div>
+  </div>
+  <form class="d-flex gap-2" method="get">
+    {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+    <input type="text" name="q" class="form-control form-control-sm" placeholder="SK-2026-000001" value="{{ q }}" style="min-width:190px">
+    <button type="submit" class="btn btn-brand btn-sm"><i class="bi bi-search"></i></button>
+  </form>
+</div>
+
+<!-- status chips -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a class="chip {{ 'active' if not current_status }}" href="{{ url_for('admin.orders') }}">All</a>
+  {% for s in statuses %}
+    <a class="chip {{ 'active' if current_status == s }}" href="{{ url_for('admin.orders', status=s) }}">
+      {{ status_meta[s].icon }} {{ status_meta[s].text }}
+    </a>
+  {% endfor %}
+</div>
+
+<div class="card-soft p-0 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Order</th><th>Customer</th><th>Items</th><th>Total</th>
+          <th>Payment</th><th>Status</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin.order_detail', oid=o.id) }}" class="fw-semibold small text-dark">{{ o.order_number }}</a>
+            <div class="text-tiny text-muted">{{ o.placed_at | datetimef }}</div>
+          </td>
+          <td>
+            <div class="small fw-semibold">{{ o.user.name }}</div>
+            <div class="text-tiny text-muted">{{ o.user.email }}</div>
+          </td>
+          <td class="small">{{ o.item_count }}</td>
+          <td class="fw-bold small">{{ o.total | money }}</td>
+          <td><span class="badge text-bg-light text-dark border">{{ o.payment_method }}</span></td>
+          <td>{{ status_badge(o.status) }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('admin.order_detail', oid=o.id) }}" class="btn btn-sm btn-soft">
+              <i class="bi bi-arrow-right"></i> Manage
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No orders found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

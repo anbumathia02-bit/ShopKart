@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block title %}My Addresses — {{ STORE_NAME }}{% endblock %} {% block content %}
+📍 Saved Addresses
+← Back to account
+{% if addresses %} {% for a in addresses %}
+{{ a.full_name }} {{ a.label }} {% if a.is_default %}Default{% endif %}
+{{ a.one_line }}
+📞 {{ a.phone }}
+{% if not a.is_default %}
+Set default
+{% endif %}
+
+{% endfor %} {% else %}
+📍
+No addresses saved
+Add your addresses in the right side form.
+
+{% endif %}
+➕ Add New Address
+Full name * 
+{{ current_user.name }}
+Phone * 
+{{ current_user.phone or '' }}
+Address line 1 * 
+House no, street
+Address line 2 
+Landmark, area (optional)
+City * 
+State * 
+Pincode * 
+Label 
+Home
+ Set as default address
+Save Address
+{% endblock %}

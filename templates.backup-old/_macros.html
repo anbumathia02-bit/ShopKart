@@ -1,0 +1,154 @@
+{# ===== v3: VS Code lint-clean (no Jinja inside style="") ============================================================
+   _macros.html — ShopKart reusable UI pieces (v3)
+   ------------------------------------------------------------
+   Ella page-um ithai import pannum:
+       {% from "_macros.html" import product_card with context %}
+   Ithula 5 components irukku:
+       stars() | product_card() | status_badge()
+       order_tracker() | render_pagination()
+   ============================================================ #}
+
+
+{% macro stars(rating, count=none) %}
+  {% set r = rating | int %}
+  {% set half = (rating - r) >= 0.4 %}
+  <span class="stars">
+    {{ '★' * r }}{% if half %}★{% endif %}{{ '☆' * (5 - r - (1 if half else 0)) }}
+  </span>
+  <span class="ms-1 text-tiny text-muted">
+    {{ '%.1f' | format(rating) }}{% if count %} ({{ '{:,}'.format(count) }}){% endif %}
+  </span>
+{% endmacro %}
+
+
+{% macro product_card(p) %}
+<div class="pcard">
+  <div class="thumb">
+    <a href="{{ url_for('main.product_detail', pid=p.id) }}"
+       class="d-flex w-100 h-100 align-items-center justify-content-center">
+      {% if p.image_url %}
+        <img src="{{ p.image_url }}" alt="{{ p.name }}">
+      {% else %}
+        <span>{{ p.emoji }}</span>
+      {% endif %}
+    </a>
+
+    {% if p.discount_percent >= 40 %}
+      <span class="badge-deal">-{{ p.discount_percent }}%</span>
+    {% elif p.is_new %}
+      <span class="badge-new">NEW</span>
+    {% elif p.rating >= 4.4 %}
+      <span class="badge-best">TOP RATED</span>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+      <button type="button" class="wish-btn"
+              data-wish="{{ url_for('main.toggle_wishlist', pid=p.id) }}"
+              title="Wishlist"><i class="bi bi-heart"></i></button>
+    {% else %}
+      <a class="wish-btn" href="{{ url_for('auth.login', next=request.path) }}"
+         title="Login to save"><i class="bi bi-heart"></i></a>
+    {% endif %}
+
+    {% if not p.in_stock %}<div class="oos-veil">OUT OF STOCK</div>{% endif %}
+  </div>
+
+  <div class="p-3 d-flex flex-column flex-grow-1">
+    <a href="{{ url_for('main.product_detail', pid=p.id) }}" class="pname">{{ p.name }}</a>
+    <div class="text-tiny text-muted mt-1 mb-1">by <strong>{{ p.seller }}</strong></div>
+
+    <div class="d-flex align-items-center gap-2 mt-1">
+      <span class="rate-chip"><i class="bi bi-star-fill"></i> {{ '%.1f' | format(p.rating) }}</span>
+      <span class="rcount">({{ '{:,}'.format(p.review_count) }})</span>
+    </div>
+
+    <div class="d-flex align-items-baseline gap-2 mt-2">
+      <span class="price">{{ p.price | money }}</span>
+      {% if p.discount_percent %}
+        <span class="mrp">{{ p.mrp | money }}</span>
+        <span class="off">{{ p.discount_percent }}% off</span>
+      {% endif %}
+    </div>
+
+    <div class="text-tiny text-muted mt-1">
+      {% if p.in_stock %}
+        <i class="bi bi-truck"></i> Free delivery
+        {% if p.price < FREE_SHIPPING_ABOVE %}on orders above {{ FREE_SHIPPING_ABOVE | money }}{% endif %}
+      {% else %}
+        <span class="text-danger fw-semibold">Currently unavailable</span>
+      {% endif %}
+    </div>
+
+    <div class="mt-3 d-grid">
+      {% if p.in_stock %}
+        <form data-ajax-cart action="{{ url_for('cart.add', pid=p.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="qty" value="1">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button class="btn btn-warn w-100 btn-sm" type="submit">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </button>
+        </form>
+      {% else %}
+        <button type="button" class="btn btn-soft w-100 btn-sm" disabled>Notify me</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro status_badge(status) %}
+  {% set m = status_meta.get(status, {'color':'secondary','text':status,'icon':'•'}) %}
+  <span class="badge rounded-pill text-bg-{{ m.color }}">{{ m.icon }} {{ m.text }}</span>
+{% endmacro %}
+
+
+{% macro order_tracker(order) %}
+  {% set flow = ['PLACED','CONFIRMED','PACKED','SHIPPED','OUT_FOR_DELIVERY','DELIVERED'] %}
+  {% if order.status == 'CANCELLED' %}
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-0">
+      <i class="bi bi-x-circle fs-4"></i>
+      <div><strong>Order Cancelled</strong> — idhu order cancel aagidhu.</div>
+    </div>
+  {% else %}
+    {% set idx = flow.index(order.status) if order.status in flow else 0 %}
+    <div class="tracker">
+      {% for s in flow %}
+        {% set cls = 'done' if loop.index0 < idx else ('current' if loop.index0 == idx else '') %}
+        <div class="step {{ cls }}">
+          <div class="dot">{{ status_meta[s].icon }}</div>
+          <div class="cap">{{ status_meta[s].text }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+
+{% macro render_pagination(pagination, endpoint_args) %}
+  {% if pagination.pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+        <a class="page-link"
+           href="{{ url_for('main.products', page=pagination.prev_num, **endpoint_args) }}">‹ Prev</a>
+      </li>
+      {% for p in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+        {% if p %}
+          <li class="page-item {{ 'active' if p == pagination.page }}">
+            <a class="page-link"
+               href="{{ url_for('main.products', page=p, **endpoint_args) }}">{{ p }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+        <a class="page-link"
+           href="{{ url_for('main.products', page=pagination.next_num, **endpoint_args) }}">Next ›</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+{% endmacro %}

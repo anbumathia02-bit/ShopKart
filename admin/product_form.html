@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %} {% block title %}{{ 'Edit' if product else 'Add' }} Product — Admin{% endblock %} {% block admin %}
+{{ '✏️ Edit Product' if product else '➕ Add New Product' }}
+{{ 'Update details, price, stock or image' if product else 'Fill the details and publish to store' }}
+← Back to products
+Basic Details
+Product name * 
+{{ product.name if product else '' }}
+Description 
+{{ product.description if product else '' }}
+Selling price (₹) * 
+MRP (₹) 
+Same as price if none
+Stock quantity * 
+Categorisation & Seller
+Category 
+— Select category —
+Seller name 
+{{ product.seller if product else 'ShopKart Retail' }}
+Rating (0–5) 
+Fallback emoji 
+{{ product.emoji if product else '📦' }}
+Fallback colour 
+ Visible in store (active)
+Product Image
+{% if product and product.image_url %}  {% else %} {{ product.emoji if product else '📦' }} {% endif %}
+No file chosen
+JPG / PNG / WEBP · max 5 MB. Image illama na, emoji + colour use aagum.
+{% if product and product.image %}
+ Remove current image
+{% endif %}
+Quick Stats
+{% if product %}
+Product ID#{{ product.id }}
+Slug{{ product.slug }}
+Added{{ product.created_at | datef }}
+Discount{{ product.discount_percent }}%
+{% else %}
+New product — save panna piragu stats inga varum.
+{% endif %}
+{{ 'Update Product' if product else 'Create Product' }} Cancel
+{% endblock %}

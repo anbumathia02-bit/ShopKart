@@ -1,0 +1,36 @@
+{% extends "base.html" %} {% from "_macros.html" import product_card, stars with context %} {% block title %}{{ product.name }} — {{ STORE_NAME }}{% endblock %} {% block content %}
+Home
+{% if product.category %}
+{{ product.category.name }}
+{% endif %}
+{{ product.name }}
+{% if product.image_url %} {{ product.name }} {% else %} {{ product.emoji }} {% endif %}
+{% if product.in_stock %}
+{% if product.stock <= 5 %}Hurry! Only {{ product.stock }} left in stock {% else %} In stock — {{ product.stock }} units available{% endif %}
+{% endif %}
+{{ product.name }}
+{{ stars(product.rating, product.review_count) }} Sold by {{ product.seller }} {% if product.is_new %}NEW{% endif %}
+{{ product.price | money }} {% if product.discount_percent %} {{ product.mrp | money }} {{ product.discount_percent }}% OFF {% endif %}
+Inclusive of all taxes
+Delivery
+🚚 Free delivery on orders above {{ FREE_SHIPPING_ABOVE | money }} · otherwise {{ SHIPPING_FEE | money }}  |  💵 Cash on Delivery available  |  ↩️ 7-day returns
+{% if product.in_stock %}
+− 
+1
+ +
+Add to Cart
+Buy Now
+{% if current_user.is_authenticated %} Wishlist {% else %} Wishlist {% endif %}
+{% else %}
+Out of stock — ivalo seekkiram thirumbi varum!
+{% endif %}
+Product Description
+{{ product.description or 'No description added yet.' }}
+
+{% if related %}
+Similar Products
+{% for p in related %}
+{{ product_card(p) }}
+{% endfor %}
+{% endif %}
+{% endblock %}

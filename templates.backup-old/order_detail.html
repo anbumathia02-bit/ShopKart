@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% from "_macros.html" import status_badge, order_tracker with context %} {% block title %}Order {{ order.order_number }} — {{ STORE_NAME }}{% endblock %} {% block content %}
+← My Orders
+Order {{ order.order_number }}
+Placed on {{ order.placed_at | datetimef }}
+{{ status_badge(order.status) }} {% if order.delivered_at %}
+Delivered on {{ order.delivered_at | datef }}
+{% endif %}
+Track Your Order
+{{ order_tracker(order) }} {% if order.history %}
+Timeline
+{% for h in order.history|reverse %}
+{{ h.meta.icon }}
+{{ h.meta.text }}
+{{ h.created_at | datetimef }}{% if h.note %} · {{ h.note }}{% endif %}
+{% endfor %}
+{% endif %}
+Items ({{ order.item_count }})
+{% for it in order.items %}
+{% if it.product_image %} {% else %}{{ it.emoji }}{% endif %}
+{{ it.product_name }}
+Sold by {{ it.seller }} · Qty {{ it.qty }}
+{{ it.price | money }} each
+{{ it.line_total | money }}
+{% endfor %}
+Delivery Address
+{{ order.ship_name }}
+{{ order.ship_address }}
+📞 {{ order.ship_phone }}
+Payment Details
+Method{{ '💵 Cash on Delivery' if order.payment_method == 'COD' else order.payment_method }}
+Subtotal{{ order.subtotal | money }}
+Delivery {% if order.shipping_fee == 0 %}FREE{% else %}{{ order.shipping_fee | money }}{% endif %}
+Total{{ order.total | money }}
+{% if order.can_cancel %}
+Cancel Order
+{% endif %}
+Track this order
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card-soft empty-state mt-4" style="max-width:640px;margin:0 auto">
+    <div class="ico">🧭</div>
+    <h3 class="fw-bold mt-2 mb-1">404</h3>
+    <h6 class="fw-semibold mb-2">Indha page kidaikkala</h6>
+    <p class="small mb-4">Neenga thedra page-ah move panniyo illa delete panniyo irukkum. Home-ku poy paarunga 😊</p>
+    <div class="d-flex gap-2 justify-content-center">
+      <a href="{{ url_for('main.home') }}" class="btn btn-brand rounded-pill px-4">Go Home</a>
+      <a href="{{ url_for('main.products') }}" class="btn btn-soft rounded-pill px-4">Browse Products</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{# Admin layout: sidebar + content. Child templates fill the `admin` block. #}
+
+{% block content %}
+<div class="admin-shell">
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="admin-side">
+    <div class="px-2 py-3 mb-2 border-bottom border-secondary-subtle">
+      <div class="fw-bold text-white">⚙️ Admin Panel</div>
+      <div class="text-tiny" style="color:#8b95ad">{{ current_user.email }}</div>
+    </div>
+
+    <div class="sec">Overview</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <div class="sec">Catalog</div>
+    <a href="{{ url_for('admin.products') }}" class="{{ 'active' if request.endpoint in ['admin.products','admin.product_edit','admin.product_new'] }}">
+      <i class="bi bi-box-seam"></i> Products
+    </a>
+    <a href="{{ url_for('admin.product_new') }}" class="{{ 'active' if request.endpoint == 'admin.product_new' }}">
+      <i class="bi bi-plus-square"></i> Add Product
+    </a>
+    <a href="{{ url_for('admin.categories') }}" class="{{ 'active' if request.endpoint == 'admin.categories' }}">
+      <i class="bi bi-tags"></i> Categories
+    </a>
+
+    <div class="sec">Sales</div>
+    <a href="{{ url_for('admin.orders') }}" class="{{ 'active' if request.endpoint in ['admin.orders','admin.order_detail'] }}">
+      <i class="bi bi-receipt"></i> Orders
+    </a>
+    <a href="{{ url_for('admin.customers') }}" class="{{ 'active' if request.endpoint in ['admin.customers','admin.customer_detail'] }}">
+      <i class="bi bi-people"></i> Customers
+    </a>
+
+    <div class="sec">Shop</div>
+    <a href="{{ url_for('main.home') }}"><i class="bi bi-shop"></i> View Storefront</a>
+  </aside>
+
+  <!-- ── BODY ────────────────────────────────────────────── -->
+  <section class="admin-body">
+    {% block admin %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

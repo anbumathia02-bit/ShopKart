@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge with context %}
+{% block title %}My Account — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row g-4">
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <div class="col-lg-3">
+      <div class="card-soft p-3">
+        <div class="text-center mb-3">
+          <div class="rounded-circle bg-brand text-white d-inline-flex align-items-center justify-content-center"
+               style="width:64px;height:64px;font-size:1.6rem;font-weight:800">
+            {{ current_user.name[0]|upper }}
+          </div>
+          <div class="fw-bold mt-2">{{ current_user.name }}</div>
+          <div class="text-tiny text-muted">{{ current_user.email }}</div>
+          {% if current_user.is_admin %}<span class="badge text-bg-dark mt-1">ADMIN</span>{% endif %}
+        </div>
+        <div class="list-group list-group-flush small">
+          <a class="list-group-item list-group-item-action active bg-brand border-0 text-white" href="{{ url_for('auth.account') }}">
+            <i class="bi bi-person"></i> Profile
+          </a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('orders.history') }}"><i class="bi bi-box-seam"></i> My Orders</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('auth.addresses') }}"><i class="bi bi-geo-alt"></i> Addresses</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('main.wishlist') }}"><i class="bi bi-heart"></i> Wishlist</a>
+          {% if current_user.is_admin %}
+            <a class="list-group-item list-group-item-action text-brand" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Admin Panel</a>
+          {% endif %}
+          <a class="list-group-item list-group-item-action text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTENT ─────────────────────────────────────────── -->
+    <div class="col-lg-9">
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4">
+          <div class="stat-card">
+            <div class="lbl">Total Orders</div>
+            <div class="val">{{ total_orders }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="stat-card">
+            <div class="lbl">Saved Addresses</div>
+            <div class="val">{{ current_user.addresses|length }}</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="stat-card">
+            <div class="lbl">Member Since</div>
+            <div class="val" style="font-size:1.15rem">{{ current_user.created_at | datef }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft p-3 mb-3">
+        <div class="fw-bold mb-3">Profile Details</div>
+        <div class="row g-3 small">
+          <div class="col-md-4"><span class="text-muted d-block text-tiny">Name</span>{{ current_user.name }}</div>
+          <div class="col-md-4"><span class="text-muted d-block text-tiny">Email</span>{{ current_user.email }}</div>
+          <div class="col-md-4"><span class="text-muted d-block text-tiny">Phone</span>{{ current_user.phone or '—' }}</div>
+        </div>
+      </div>
+
+      <div class="card-soft p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="fw-bold">Recent Orders</div>
+          <a href="{{ url_for('orders.history') }}" class="small text-brand fw-semibold">View all →</a>
+        </div>
+
+        {% if orders %}
+          {% for o in orders %}
+          <div class="d-flex justify-content-between align-items-center py-2 {{ 'border-top' if not loop.first }}">
+            <div>
+              <a href="{{ url_for('orders.detail', order_number=o.order_number) }}" class="fw-semibold small text-dark">{{ o.order_number }}</a>
+              <div class="text-tiny text-muted">{{ o.placed_at | datef }} · {{ o.item_count }} items · {{ o.total | money }}</div>
+            </div>
+            {{ status_badge(o.status) }}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted small">No orders yet. <a href="{{ url_for('main.products') }}" class="text-brand fw-semibold">Shop now →</a></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

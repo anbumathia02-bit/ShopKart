@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %} {% from "_macros.html" import status_badge with context %} {% block title %}Orders — Admin{% endblock %} {% block admin %}
+Orders
+{{ orders|length }} order(s){% if current_status %} · filtered: {{ current_status }}{% endif %}
+{% if current_status %}{% endif %} 
+{{ q }}
+ 
+All {% for s in statuses %} {{ status_meta[s].icon }} {{ status_meta[s].text }} {% endfor %}
+{% for o in orders %} {% else %} {% endfor %}
+Order	Customer	Items	Total	Payment	Status	Action
+{{ o.order_number }}
+{{ o.placed_at | datetimef }}
+{{ o.user.name }}
+{{ o.user.email }}
+{{ o.item_count }}	{{ o.total | money }}	{{ o.payment_method }}	{{ status_badge(o.status) }}	Manage
+No orders found.
+{% endblock %}

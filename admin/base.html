@@ -1,0 +1,29 @@
+🚚 Free delivery above {{ FREE_SHIPPING_ABOVE | money }}  |  7-day easy returns  |  COD available {% if current_user.is_authenticated %} Hi, {{ current_user.name.split()[0] }} My Orders {% if current_user.is_admin %}Admin Panel{% endif %} {% else %} Login New? Sign up {% endif %}
+{{ STORE_NAME[:4] }}{{ STORE_NAME[4:] }} MARKETPLACE
+{{ request.args.get('q', '') }}
+ 
+Wishlist {% if current_user.is_authenticated %}
+Hello, {{ current_user.name.split()[0] }}
+My Account
+My Orders
+Addresses
+{% if current_user.is_admin %}
+Admin Dashboard
+{% endif %}
+Logout
+{% else %} Sign in {% endif %} {{ cart_count }} Cart
+All {% for c in nav_categories %} {{ c.icon }} {{ c.name }} {% endfor %} 📦 Track Order 🎉 Today's Deals
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, msg in messages %}
+{{ msg }} 
+{% endfor %} {% endif %} {% endwith %}
+{% block content %}{% endblock %}
+Shop
+All Products New Arrivals Top Rated Under ₹499
+Your Account
+My Account Order History Track Order Wishlist
+Help
+Returns & Refunds Shipping Policy Contact Us Grievance Officer
+Policies
+Privacy Policy Terms of Use GST & Invoices Cancellation Policy
+{{ STORE_NAME }} © {{ now.year }} — Flask + MySQL demo project. Cash on Delivery enabled · Payment gateway coming in Phase 9.
+{% block scripts %}{% endblock %}

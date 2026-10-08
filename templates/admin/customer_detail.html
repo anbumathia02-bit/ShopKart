@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% from "_macros.html" import status_badge with context %}
+{% block title %}{{ user.name }} — Customer{% endblock %}
+
+{% block admin %}
+<a href="{{ url_for('admin.customers') }}" class="small text-brand fw-semibold">← All customers</a>
+
+<div class="d-flex flex-wrap align-items-center gap-3 my-3">
+  <div class="rounded-circle bg-brand text-white d-flex align-items-center justify-content-center"
+       style="width:64px;height:64px;font-size:1.7rem;font-weight:800">{{ user.name[0]|upper }}</div>
+  <div>
+    <h5 class="fw-bold mb-0">{{ user.name }}</h5>
+    <div class="text-tiny text-muted">{{ user.email }} · 📞 {{ user.phone or '—' }} · Joined {{ user.created_at | datef }}</div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="stat-card"><div class="lbl">Total Orders</div><div class="val">{{ orders|length }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card"><div class="lbl">Total Spent</div><div class="val">{{ spent | money }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card"><div class="lbl">Addresses</div><div class="val">{{ addresses|length }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card"><div class="lbl">Avg Order</div><div class="val">{{ (spent / orders|length) | round | int | money if orders else '₹0' }}</div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card-soft p-3">
+      <div class="fw-bold mb-3">Order History</div>
+      {% for o in orders %}
+      <div class="d-flex justify-content-between align-items-center py-2 {{ 'border-top' if not loop.first }}">
+        <div>
+          <a href="{{ url_for('admin.order_detail', oid=o.id) }}" class="small fw-semibold text-dark">{{ o.order_number }}</a>
+          <div class="text-tiny text-muted">{{ o.placed_at | datetimef }} · {{ o.item_count }} items</div>
+        </div>
+        <div class="text-end">
+          <div class="fw-bold small">{{ o.total | money }}</div>
+          {{ status_badge(o.status) }}
+        </div>
+      </div>
+      {% else %}
+        <div class="text-muted small">Indha customer innum order pannala.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-soft p-3">
+      <div class="fw-bold mb-3">Saved Addresses</div>
+      {% for a in addresses %}
+      <div class="py-2 {{ 'border-top' if not loop.first }}">
+        <div class="small fw-semibold">
+          {{ a.full_name }} <span class="badge text-bg-light text-dark border">{{ a.label }}</span>
+          {% if a.is_default %}<span class="badge text-bg-success">Default</span>{% endif %}
+        </div>
+        <div class="text-tiny text-muted">{{ a.one_line }}</div>
+        <div class="text-tiny text-muted">📞 {{ a.phone }}</div>
+      </div>
+      {% else %}
+        <div class="text-muted small">No addresses saved.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% from "_macros.html" import stars with context %} {% block title %}Your Cart — {{ STORE_NAME }}{% endblock %} {% block content %}
+🛒 Your Cart {% if count %}({{ count }} items){% endif %}
+{% if items %}
+{% for it in items %} {% set p = it.product %}
+{% if p.image_url %} {% else %}{{ p.emoji }}{% endif %}
+{{ p.name }}
+Sold by {{ p.seller }}
+{{ stars(p.rating) }}
+{{ p.price | money }} {{ p.mrp | money }} {{ p.discount_percent }}% off
+{% if p.stock <= 5 %}
+Only {{ p.stock }} left
+{% endif %}
+− 
+ +
+Remove
+{{ it.line_total | money }}
+{% endfor %}
+← Continue shopping
+Clear cart
+Price Details
+Price ({{ count }} items){{ mrp_total | money }}
+Discount− {{ savings | money }}
+Delivery {% if shipping == 0 %}FREE{% else %}{{ shipping | money }}{% endif %}
+{% if shipping > 0 %}
+Add {{ (FREE_SHIPPING_ABOVE - subtotal) | money }} more for FREE delivery 🚚
+{% endif %}
+Total{{ total | money }}
+You save {{ savings | money }} on this order 🎉
+Proceed to Checkout
+{% if not current_user.is_authenticated %}
+Checkout-ku login pannunga
+{% endif %}
+100% Secure · 💵 Cash on Delivery available
+{% else %}
+🛒
+Your cart is empty
+Products add pannunga, ivlo verum-a irukku 😊
+
+Start Shopping
+{% endif %}
+{% endblock %}

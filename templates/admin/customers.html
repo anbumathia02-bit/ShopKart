@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+{% block title %}Customers — Admin{% endblock %}
+
+{% block admin %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h5 class="fw-bold mb-0">Customers</h5>
+    <div class="text-tiny text-muted">{{ users|length }} registered buyer(s)</div>
+  </div>
+  <form class="d-flex gap-2" method="get">
+    <input type="text" name="q" class="form-control form-control-sm" placeholder="Name or email..." value="{{ q }}" style="min-width:220px">
+    <button type="submit" class="btn btn-brand btn-sm"><i class="bi bi-search"></i></button>
+  </form>
+</div>
+
+<div class="card-soft p-0 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Customer</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th>Joined</th><th class="text-end">Action</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        {% set st = stats.get(u.id, {'orders':0, 'spent':0}) %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded-circle bg-brand text-white d-flex align-items-center justify-content-center"
+                   style="width:36px;height:36px;font-weight:800">{{ u.name[0]|upper }}</div>
+              <div>
+                <div class="small fw-semibold">{{ u.name }}</div>
+                <div class="text-tiny text-muted">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="small">{{ u.phone or '—' }}</td>
+          <td><span class="badge text-bg-light text-dark border">{{ st.orders }}</span></td>
+          <td class="fw-bold small">{{ st.spent | money }}</td>
+          <td class="text-tiny text-muted">{{ u.created_at | datef }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('admin.customer_detail', uid=u.id) }}" class="btn btn-sm btn-soft">
+              <i class="bi bi-person-lines-fill"></i> Details
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No customers found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

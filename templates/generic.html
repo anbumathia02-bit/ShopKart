@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card-soft empty-state mt-4" style="max-width:640px;margin:0 auto">
+    <div class="ico">{{ '⏳' if code == 400 else '🧭' }}</div>
+    <h3 class="fw-bold mt-2 mb-1">{{ code }}</h3>
+    <h6 class="fw-semibold mb-2">{{ title }}</h6>
+    <p class="small mb-4">{{ message }}</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <a href="{{ url_for('main.home') }}" class="btn btn-brand rounded-pill px-4">Go Home</a>
+      <a href="{{ url_for('main.products') }}" class="btn btn-soft rounded-pill px-4">Browse Products</a>
+      <a href="{{ url_for('cart.view_cart') }}" class="btn btn-soft rounded-pill px-4">My Cart</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

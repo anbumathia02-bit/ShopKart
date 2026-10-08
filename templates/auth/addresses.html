@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}My Addresses — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h5 class="fw-bold mb-0">📍 Saved Addresses</h5>
+    <a href="{{ url_for('auth.account') }}" class="small text-brand fw-semibold">← Back to account</a>
+  </div>
+
+  <div class="row g-4">
+    <!-- ── LIST ────────────────────────────────────────────── -->
+    <div class="col-lg-7">
+      {% if addresses %}
+        {% for a in addresses %}
+        <div class="card-soft p-3 mb-3 {{ 'border-brand' if a.is_default }}" style="{{ 'border-color:var(--brand)!important' if a.is_default }}">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="fw-bold small">
+                {{ a.full_name }}
+                <span class="badge text-bg-light text-dark border ms-1">{{ a.label }}</span>
+                {% if a.is_default %}<span class="badge text-bg-success ms-1">Default</span>{% endif %}
+              </div>
+              <div class="text-tiny text-muted mt-1">{{ a.one_line }}</div>
+              <div class="text-tiny text-muted">📞 {{ a.phone }}</div>
+            </div>
+            <div class="d-flex gap-2">
+              {% if not a.is_default %}
+                <form action="{{ url_for('auth.make_default_address', aid=a.id) }}" method="post" class="mb-0">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm btn-soft">Set default</button>
+                </form>
+              {% endif %}
+              <form action="{{ url_for('auth.delete_address', aid=a.id) }}" method="post" class="mb-0"
+                    onsubmit="return confirm('Indha address-ah delete pannalaama?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="card-soft empty-state">
+          <div class="ico">📍</div>
+          <h6 class="fw-bold mt-2">No addresses saved</h6>
+          <p class="small mb-0">Right side form-la unga first address-ah add pannunga.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ── ADD FORM ────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="card-soft p-3">
+        <div class="fw-bold mb-3">➕ Add New Address</div>
+        <form method="post" action="{{ url_for('auth.addresses', next=request.args.get('next')) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">Full name *</label>
+              <input type="text" name="full_name" class="form-control form-control-sm"
+                     value="{{ current_user.name }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">Phone *</label>
+              <input type="tel" name="phone" class="form-control form-control-sm"
+                     value="{{ current_user.phone or '' }}" pattern="[0-9]{10}" maxlength="10" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold mb-1">Address line 1 *</label>
+              <input type="text" name="line1" class="form-control form-control-sm"
+                     placeholder="House no, street" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold mb-1">Address line 2</label>
+              <input type="text" name="line2" class="form-control form-control-sm"
+                     placeholder="Landmark, area (optional)">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">City *</label>
+              <input type="text" name="city" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">State *</label>
+              <input type="text" name="state" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">Pincode *</label>
+              <input type="text" name="pincode" class="form-control form-control-sm"
+                     pattern="[0-9]{6}" maxlength="6" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold mb-1">Label</label>
+              <select name="label" class="form-select form-select-sm">
+                <option>Home</option><option>Work</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" name="is_default" id="isdef">
+            <label class="form-check-label small" for="isdef">Set as default address</label>
+          </div>
+
+          <button type="submit" class="btn btn-brand w-100 mt-3"><i class="bi bi-plus-lg"></i> Save Address</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

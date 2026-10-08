@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% from "_macros.html" import status_badge, order_tracker with context %} {% block title %}Track Order — {{ STORE_NAME }}{% endblock %} {% block content %}
+🚚 Track Your Order
+Order number-ah type pannunga (e.g. SK-2026-000001). Idhu unga order confirmation message-la irukkum.
+
+{{ number }}
+Track
+{% if order %}
+{{ order.order_number }}
+Placed {{ order.placed_at | datetimef }} · {{ order.item_count }} items · {{ order.total | money }}
+{{ status_badge(order.status) }}
+{{ order_tracker(order) }}
+Delivering to
+{{ order.ship_name }}
+{{ order.ship_address }}
+📞 {{ order.ship_phone }}
+Items
+{% for it in order.items %}
+{{ it.emoji }} {{ it.product_name }} × {{ it.qty }}
+{% endfor %}
+{% if order.history %}
+Updates
+{% for h in order.history|reverse %}
+{{ h.meta.icon }} {{ h.meta.text }} — {{ h.created_at | datetimef }}
+{% endfor %}
+{% endif %}
+{% elif number %}
+🔍
+Order kidaikkala
+Order number-ah sariya check pannunga.
+
+{% endif %}
+{% endblock %}

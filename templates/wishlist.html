@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card with context %}
+{% block title %}My Wishlist — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h5 class="fw-bold mb-3">❤️ My Wishlist
+    {% if items %}<span class="text-muted fw-normal">({{ items|length }} items)</span>{% endif %}
+  </h5>
+
+  {% if items %}
+    <div class="row g-3">
+      {% for it in items %}
+        <div class="col-6 col-lg-3">{{ product_card(it.product) }}</div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card-soft empty-state">
+      <div class="ico">💗</div>
+      <h6 class="fw-bold mt-2">Wishlist khali hai</h6>
+      <p class="small mb-3">Product card-la ❤️ icon click pannunga — save aagum.</p>
+      <a href="{{ url_for('main.products') }}" class="btn btn-brand rounded-pill px-4">Browse Products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

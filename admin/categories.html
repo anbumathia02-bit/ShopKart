@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %} {% block title %}Categories — Admin{% endblock %} {% block admin %}
+Categories
+{% for c in categories %} {% endfor %}
+Icon	Name	Slug	Products	Action
+{{ c.icon }}	{{ c.name }}	{{ c.slug }}	{{ c.product_count }} items	
+
+➕ Add Category
+Category name * 
+e.g. Footwear
+Icon (emoji) 
+📦
+Add Category
+Products irukkura category-ah delete panna mudiyaadhu — modhalla products-ah vera category-ku move pannunga.
+{% endblock %}

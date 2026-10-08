@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars with context %}
+{% block title %}Your Cart — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h5 class="fw-bold mb-3">🛒 Your Cart {% if count %}<span class="text-muted fw-normal">({{ count }} items)</span>{% endif %}</h5>
+
+  {% if items %}
+  <div class="row g-4">
+    <!-- ── ITEMS ──────────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <div class="card-soft">
+        {% for it in items %}
+        {% set p = it.product %}
+        <div class="p-3 d-flex gap-3 {{ 'border-top' if not loop.first }}">
+          <div class="img-thumb" style="background:{{ p.color }}">
+            {% if p.image_url %}<img src="{{ p.image_url }}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">
+            {% else %}{{ p.emoji }}{% endif %}
+          </div>
+
+          <div class="flex-grow-1 min-w-0">
+            <a href="{{ url_for('main.product_detail', pid=p.id) }}" class="fw-semibold text-dark" style="font-size:.92rem">{{ p.name }}</a>
+            <div class="text-tiny text-muted">Sold by <strong>{{ p.seller }}</strong></div>
+            {{ stars(p.rating) }}
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="fw-bold">{{ p.price | money }}</span>
+              <span class="text-muted text-decoration-line-through text-tiny">{{ p.mrp | money }}</span>
+              <span class="text-ok text-tiny fw-bold">{{ p.discount_percent }}% off</span>
+            </div>
+
+            {% if p.stock <= 5 %}
+              <div class="text-tiny text-danger fw-semibold mt-1">Only {{ p.stock }} left</div>
+            {% endif %}
+
+            <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
+              <form action="{{ url_for('cart.update', pid=p.id) }}" method="post" data-autosubmit="true" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="qtybox">
+                  <button type="button" data-qty="-1">−</button>
+                  <input type="number" name="qty" value="{{ it.qty }}" min="1" max="{{ p.stock }}" readonly>
+                  <button type="button" data-qty="1">+</button>
+                </div>
+                <noscript><button type="submit" class="btn btn-sm btn-soft">Update</button></noscript>
+              </form>
+
+              <form action="{{ url_for('cart.remove', pid=p.id) }}" method="post" class="mb-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-link btn-sm text-danger p-0 text-decoration-none">
+                  <i class="bi bi-trash"></i> Remove
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <div class="fw-bold">{{ it.line_total | money }}</div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="p-3 border-top d-flex justify-content-between align-items-center">
+          <a href="{{ url_for('main.products') }}" class="small text-brand fw-semibold">← Continue shopping</a>
+          <form action="{{ url_for('cart.clear') }}" method="post" class="mb-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-link btn-sm text-muted p-0 text-decoration-none">Clear cart</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUMMARY ────────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <div class="card-soft p-3 position-sticky" style="top:1rem">
+        <div class="filter-title mb-3">Price Details</div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Price ({{ count }} items)</span><span>{{ mrp_total | money }}</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-2 text-ok">
+          <span>Discount</span><span>− {{ savings | money }}</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Delivery</span>
+          <span>{% if shipping == 0 %}<span class="text-ok fw-bold">FREE</span>{% else %}{{ shipping | money }}{% endif %}</span>
+        </div>
+        {% if shipping > 0 %}
+          <div class="alert alert-warning py-2 px-3 text-tiny mb-2">
+            Add {{ (FREE_SHIPPING_ABOVE - subtotal) | money }} more for <strong>FREE delivery</strong> 🚚
+          </div>
+        {% endif %}
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+          <span>Total</span><span>{{ total | money }}</span>
+        </div>
+        <div class="text-ok text-tiny fw-semibold mb-3">You save {{ savings | money }} on this order 🎉</div>
+
+        <div class="d-grid">
+          <a href="{{ url_for('orders.checkout') }}" class="btn btn-brand py-2">
+            Proceed to Checkout <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        {% if not current_user.is_authenticated %}
+          <div class="text-tiny text-muted text-center mt-2">
+            Checkout-ku <a href="{{ url_for('auth.login', next=url_for('orders.checkout')) }}" class="text-brand fw-semibold">login</a> pannunga
+          </div>
+        {% endif %}
+        <div class="text-center mt-3 text-tiny text-muted">
+          <i class="bi bi-shield-check text-ok"></i> 100% Secure · 💵 Cash on Delivery available
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+    <div class="card-soft empty-state">
+      <div class="ico">🛒</div>
+      <h6 class="mt-2 fw-bold">Your cart is empty</h6>
+      <p class="small mb-3">Products add pannunga, ivlo verum-a irukku 😊</p>
+      <a href="{{ url_for('main.products') }}" class="btn btn-brand rounded-pill px-4">Start Shopping</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

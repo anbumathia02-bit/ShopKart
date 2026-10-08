@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% from "_macros.html" import product_card with context %} {% block title %}My Wishlist — {{ STORE_NAME }}{% endblock %} {% block content %}
+❤️ My Wishlist {% if items %}({{ items|length }} items){% endif %}
+{% if items %}
+{% for it in items %}
+{{ product_card(it.product) }}
+{% endfor %}
+{% else %}
+💗
+Wishlist khali hai
+Product card-la ❤️ icon click pannunga — save aagum.
+
+Browse Products
+{% endif %}
+{% endblock %}

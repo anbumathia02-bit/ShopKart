@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, order_tracker with context %}
+{% block title %}Order {{ order.order_number }} — {{ STORE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+      <a href="{{ url_for('orders.history') }}" class="small text-brand fw-semibold">← My Orders</a>
+      <h5 class="fw-bold mb-0 mt-1">Order {{ order.order_number }}</h5>
+      <div class="text-tiny text-muted">Placed on {{ order.placed_at | datetimef }}</div>
+    </div>
+    <div class="text-end">
+      {{ status_badge(order.status) }}
+      {% if order.delivered_at %}<div class="text-tiny text-ok mt-1">Delivered on {{ order.delivered_at | datef }}</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- tracker -->
+  <div class="card-soft p-4 mb-4">
+    <div class="fw-bold mb-3">Track Your Order</div>
+    {{ order_tracker(order) }}
+
+    {% if order.history %}
+    <hr>
+    <div class="fw-semibold small mb-2">Timeline</div>
+    <ul class="list-unstyled mb-0">
+      {% for h in order.history|reverse %}
+      <li class="d-flex gap-3 mb-2">
+        <span class="fs-5">{{ h.meta.icon }}</span>
+        <div>
+          <div class="small fw-semibold">{{ h.meta.text }}</div>
+          <div class="text-tiny text-muted">{{ h.created_at | datetimef }}{% if h.note %} · {{ h.note }}{% endif %}</div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card-soft p-3">
+        <div class="fw-bold mb-2">Items ({{ order.item_count }})</div>
+        {% for it in order.items %}
+        <div class="d-flex gap-3 py-3 {{ 'border-top' if not loop.first }}">
+          <div class="img-thumb" style="background:{{ it.color }}">
+            {% if it.product_image %}<img src="/static/uploads/products/{{ it.product_image }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">
+            {% else %}{{ it.emoji }}{% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div class="small fw-semibold">{{ it.product_name }}</div>
+            <div class="text-tiny text-muted">Sold by {{ it.seller }} · Qty {{ it.qty }}</div>
+            <div class="text-tiny text-muted">{{ it.price | money }} each</div>
+          </div>
+          <div class="fw-bold small">{{ it.line_total | money }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card-soft p-3 mb-3">
+        <div class="fw-bold mb-2">Delivery Address</div>
+        <div class="small fw-semibold">{{ order.ship_name }}</div>
+        <div class="text-tiny text-muted">{{ order.ship_address }}</div>
+        <div class="text-tiny text-muted">📞 {{ order.ship_phone }}</div>
+      </div>
+
+      <div class="card-soft p-3">
+        <div class="fw-bold mb-3">Payment Details</div>
+        <div class="small d-flex justify-content-between mb-1">
+          <span class="text-muted">Method</span><strong>{{ '💵 Cash on Delivery' if order.payment_method == 'COD' else order.payment_method }}</strong>
+        </div>
+        <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Subtotal</span><span>{{ order.subtotal | money }}</span></div>
+        <div class="small d-flex justify-content-between mb-1">
+          <span class="text-muted">Delivery</span>
+          <span>{% if order.shipping_fee == 0 %}<span class="text-ok fw-bold">FREE</span>{% else %}{{ order.shipping_fee | money }}{% endif %}</span>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>{{ order.total | money }}</span></div>
+      </div>
+
+      {% if order.can_cancel %}
+      <form action="{{ url_for('orders.cancel', order_number=order.order_number) }}" method="post" class="mt-3"
+            onsubmit="return confirm('Order cancel pannalaama?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger w-100"><i class="bi bi-x-circle"></i> Cancel Order</button>
+      </form>
+      {% endif %}
+
+      <div class="d-grid mt-2">
+        <a href="{{ url_for('orders.track', order=order.order_number) }}" class="btn btn-soft">
+          <i class="bi bi-geo-alt"></i> Track this order
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

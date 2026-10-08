@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %} {% from "_macros.html" import status_badge, order_tracker with context %} {% block title %}Order {{ order.order_number }} — Admin{% endblock %} {% block admin %}
+← All orders
+{{ order.order_number }}
+Placed {{ order.placed_at | datetimef }} · {{ order.item_count }} items
+{{ status_badge(order.status) }} {{ order.payment_method }}
+Order Progress
+{{ order_tracker(order) }}
+Items
+{% for it in order.items %} {% endfor %}
+Product	Seller	Price	Qty	Total
+{% if it.product_image %} {% else %}{{ it.emoji }}{% endif %}
+{{ it.product_name }}	{{ it.seller }}	{{ it.price | money }}	{{ it.qty }}	{{ it.line_total | money }}
+Subtotal	{{ order.subtotal | money }}
+Delivery	{% if order.shipping_fee == 0 %}FREE{% else %}{{ order.shipping_fee | money }}{% endif %}
+Total	{{ order.total | money }}
+Status Timeline
+{% for h in order.history|reverse %}
+{{ h.meta.icon }}
+{{ h.meta.text }}
+{{ h.created_at | datetimef }}{% if h.note %} · {{ h.note }}{% endif %}
+{% endfor %}
+⚡ Update Status
+New status 
+{{ status_meta[s].icon }} {{ status_meta[s].text }}
+Note (optional) 
+e.g. Handed to Delhivery
+Update Order
+CANCELLED set panna, stock automatic-ah thirumbi add aagum.
+👤 Customer
+{{ order.user.name }}
+{{ order.user.email }}
+📞 {{ order.user.phone or order.ship_phone }}
+View customer profile
+🚚 Shipping Address
+{{ order.ship_name }}
+{{ order.ship_address }}
+📞 {{ order.ship_phone }}
+{% endblock %}
