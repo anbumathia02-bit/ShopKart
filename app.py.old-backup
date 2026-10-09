@@ -34,8 +34,7 @@ from models import (User, Product, Category, Address, Order, OrderItem,
 # ----------------------------------------------------------------------
 # Ella error handler-um ithai use pannum. Template file (errors/404.html)
 # missing-a irundhaalo, 0-byte-a irundhaalo — app CRASH aagaadhu; intha
-# clean inline page-ah kaattum.  (Unga machine-la files missing aanaalum
-# site nikkadhu!)
+# clean inline page-ah kaattum.  (Files missing aanaalum site nikkadhu!)
 FALLBACK_ERROR_HTML = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -77,6 +76,7 @@ def _fallback_page(code: int, title: str, message: str) -> str:
             .replace("__MESSAGE__", str(message))
             .replace("__EMOJI__", emoji))
 
+
 # ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
@@ -114,35 +114,6 @@ def _resolve_db_url(app: Flask) -> None:
         app.config["DB_LABEL"] = "SQLite (fallback)"
 
 
-def _auto_link_product_photos(app: Flask) -> int:
-    """🖼️ SELF-HEAL: DB-la image link illaama irundha, uploads folder-la
-    irukkura photos-ah product slug-oda match panni automatic-ah link pannum.
-
-    Ithu dhaan 'jpg varala' problem-ku permanent fix — server start aagum
-    podhellam idhu run aagum, so photo files irundha ellame varum."""
-    from models import Product
-    folder = os.path.join(app.root_path, "static", "uploads", "products")
-    if not os.path.isdir(folder):
-        return 0
-    photos = {}
-    for name in os.listdir(folder):
-        if name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
-            stem, _ext = os.path.splitext(name)
-            photos.setdefault(stem, name)
-    if not photos:
-        return 0
-    linked = 0
-    for prod in Product.query.all():
-        if not prod.image:
-            fname = photos.get(prod.slug)
-            if fname:
-                prod.image = fname
-                linked += 1
-    if linked:
-        db.session.commit()
-    return linked
-
-
 def ensure_ready(app: Flask) -> None:
     """Create tables and seed demo data if the database is empty."""
     with app.app_context():
@@ -154,10 +125,6 @@ def ensure_ready(app: Flask) -> None:
                 app.logger.info("Database seeded with demo data.")
             else:
                 app.logger.info("Database already contains data — seed skipped.")
-            # 🖼️ self-heal: link photos for any product that has none
-            linked = _auto_link_product_photos(app)
-            if linked:
-                app.logger.info("Product photos auto-linked: %s", linked)
         except Exception as exc:                   # noqa: BLE001
             app.logger.error("Database initialisation failed: %s", exc)
             db.session.rollback()
